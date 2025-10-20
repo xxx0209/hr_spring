@@ -10,7 +10,7 @@ public class HrApplication {
 		SpringApplication.run(HrApplication.class, args);
 
 		System.out.println("스타트444444");
-		System.out.println("스타트111111");
+		System.out.println("스타트55555");
 
 	}
 
