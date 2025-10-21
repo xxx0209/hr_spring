@@ -7,6 +7,8 @@ import lombok.Setter;
 import lombok.ToString;
 import org.modelmapper.ModelMapper;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "members")
 @Getter
@@ -23,5 +25,11 @@ public class Member extends BaseEntity {
     private String gender;
     private String hiredate;
     private String address;
-    private String position;
+
+    @Column(name = "custom_base_salary", precision = 12, scale = 2)
+    private BigDecimal customBaseSalary;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "position_id")
+    private Position position;
 }
