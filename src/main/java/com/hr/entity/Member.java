@@ -12,9 +12,7 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "members")
-@Getter
-@Setter
-@ToString
+@Getter @Setter @ToString
 public class Member extends BaseEntity {
 
     @Id // 이 컬럼은 primary key입니다.
@@ -33,5 +31,12 @@ public class Member extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @PrePersist
+    public void prePersist() {
+        if (role == null) {
+            role = Role.USER;
+        }
+    }
 
 }

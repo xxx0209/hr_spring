@@ -1,6 +1,7 @@
 package com.hr.dto;
 
 import com.hr.entity.Member;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -14,8 +15,8 @@ import lombok.ToString;
 @ToString
 public class MemberDto extends BaseDto {
 
-    @NotBlank(message = "아이디은 필수 입력 사항입니다.")
-    private String id;
+    @NotBlank(message = "아이디는 필수 입력 사항입니다.")
+    private String memberId;
 
     @NotBlank(message = "이름은 필수 입력 사항입니다.")
     private String name;

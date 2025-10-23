@@ -19,4 +19,8 @@ public class MemberService {
 
         memberRepository.save(member);
     }
+
+    public Boolean existsById(String memberId) {
+        return memberRepository.existsById(memberId);
+    }
 }
