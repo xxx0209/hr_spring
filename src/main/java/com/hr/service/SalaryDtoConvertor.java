@@ -19,21 +19,20 @@ public class SalaryDtoConvertor {
         dto.setGrossPay(salary.getGrossPay());
         dto.setTotalDeduction(salary.getTotalDeduction());
         dto.setNetPay(salary.getNetPay());
-        dto.setStatus(salary.getStatus().name());
+        dto.setStatus(salary.getStatus());
 
         List<TaxDeductionDetailDto> deductionDtos = salary.getTaxDeductions().stream()
                 .map(d -> {
                     TaxDeductionDetailDto td = new TaxDeductionDetailDto();
                     td.setTypeCode(d.getDeductionType().getTypeCode());
-                    td.setTypeName(d.getDeductionType().getName());
+                    td.setTypeName(d.getDeductionType().getName()); // ✅ 추가 확인
                     td.setRate(d.getRate());
                     td.setAmount(d.getAmount());
                     return td;
-                })
-                .collect(Collectors.toList());
+                }).collect(Collectors.toList());
 
         dto.setDeductions(deductionDtos);
         return dto;
-
     }
+
 }

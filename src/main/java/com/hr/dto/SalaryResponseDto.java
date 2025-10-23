@@ -1,5 +1,7 @@
 package com.hr.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.hr.constant.SalaryStatus;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -18,6 +20,7 @@ public class SalaryResponseDto {
     private String memberId;
     private String memberName;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate payDate;
 
     private BigDecimal customBaseSalary;   // 개인 기준 기본급 (null 가능)
@@ -26,7 +29,6 @@ public class SalaryResponseDto {
     private BigDecimal totalDeduction;     // 총 공제액
     private BigDecimal netPay;             // 실지급액
 
-    private String status;
-
+    private SalaryStatus status;
     private List<TaxDeductionDetailDto> deductions;
 }
