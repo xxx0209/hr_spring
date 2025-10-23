@@ -1,5 +1,6 @@
 package com.hr.service;
 
+import com.hr.constant.Role;
 import com.hr.constant.SalaryStatus;
 import com.hr.dto.SalaryRequestDto;
 import com.hr.dto.SalaryResponseDto;
@@ -9,14 +10,18 @@ import com.hr.repository.DeductionTypeRepository;
 import com.hr.repository.MemberRepository;
 import com.hr.repository.SalaryRepository;
 import com.hr.repository.TaxDeductionRepository;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,75 +34,21 @@ public class SalaryService {
     private final DeductionTypeRepository deductionTypeRepository;
     private final TaxDeductionRepository taxDeductionRepository;
 
-    /**
-     * 급여 생성
-     */
-    @Transactional
     public SalaryResponseDto createSalary(SalaryRequestDto dto) {
         Member member = memberRepository.findById(dto.getMemberId())
                 .orElseThrow(() -> new IllegalArgumentException("직원 정보 없음"));
 
-        BaseSalary baseSalary = baseSalaryService.getSalaryForMember(member);
-        BigDecimal baseAmount = baseSalary.getBaseSalary();
-        BigDecimal hourlyRate = baseSalary.getHourlyRate();
-
-        BigDecimal overtimePay = BigDecimal.ZERO;
-        if (dto.getOvertimeHours() != null && hourlyRate != null && hourlyRate.compareTo(BigDecimal.ZERO) > 0) {
-            overtimePay = hourlyRate.multiply(new BigDecimal("1.5"))
-                    .multiply(dto.getOvertimeHours())
-                    .setScale(2, RoundingMode.HALF_UP);
+        LocalDate payDate = dto.getPayDate() != null ? dto.getPayDate() : getDefaultPayDate();
+        if (salaryRepository.existsByMemberAndPayDate(member, payDate)) {
+            throw new IllegalStateException("이미 해당 월의 급여가 생성되어 있습니다.");
         }
 
-        BigDecimal grossPay = baseAmount.add(overtimePay);
-        BigDecimal totalDeduction = BigDecimal.ZERO;
-
-        // 공제 항목: 요청이 없으면 DeductionType 전체를 기본으로 사용
-        List<TaxDeductionDto> deductionDtos = dto.getDeductions();
-        if (deductionDtos == null || deductionDtos.isEmpty()) {
-            deductionDtos = deductionTypeRepository.findAll().stream()
-                    .map(type -> new TaxDeductionDto(type.getTypeCode(), null))
-                    .collect(Collectors.toList());
-        }
-
-        List<TaxDeduction> deductions = new ArrayList<>();
-        for (TaxDeductionDto td : deductionDtos) {
-            DeductionType type = deductionTypeRepository.findByTypeCode(td.getTypeCode())
-                    .orElseThrow(() -> new IllegalArgumentException("공제 유형 없음: " + td.getTypeCode()));
-
-            BigDecimal rate = td.getRate() != null ? td.getRate() : type.getDefaultRate();
-            BigDecimal amount = grossPay.multiply(rate).setScale(2, RoundingMode.HALF_UP);
-            totalDeduction = totalDeduction.add(amount);
-
-            TaxDeduction deduction = new TaxDeduction();
-            deduction.setDeductionType(type);
-            deduction.setRate(rate);
-            deduction.setAmount(amount);
-            deduction.setSalary(null); // 나중에 연결
-            deductions.add(deduction);
-        }
-
-        Salary salary = new Salary();
-        salary.setMember(member);
-        salary.setPayDate(dto.getPayDate());
-        salary.setCustomBaseSalary(baseAmount);
-        salary.setHoursBaseSalary(overtimePay);
-        salary.setGrossPay(grossPay);
-        salary.setTotalDeduction(totalDeduction);
-        salary.setNetPay(grossPay.subtract(totalDeduction));
-        salary.setStatus(SalaryStatus.COMPLETED);
-
-        for (TaxDeduction deduction : deductions) {
-            deduction.setSalary(salary);
-        }
-        salary.setTaxDeductions(deductions);
-
+        Salary salary = calculateSalary(member, dto, null);
+        salary.setStatus(SalaryStatus.DRAFT);
         Salary saved = salaryRepository.save(salary);
         return SalaryDtoConvertor.toResponseDto(saved);
     }
 
-    /**
-     * 급여 수정
-     */
     @Transactional
     public SalaryResponseDto updateSalary(Integer salaryId, SalaryRequestDto dto) {
         Salary existing = salaryRepository.findById(salaryId)
@@ -106,7 +57,12 @@ public class SalaryService {
         taxDeductionRepository.deleteAllBySalary(existing);
         existing.getTaxDeductions().clear();
 
-        Member member = existing.getMember();
+        Salary updated = calculateSalary(existing.getMember(), dto, existing);
+        Salary saved = salaryRepository.save(updated);
+        return SalaryDtoConvertor.toResponseDto(saved);
+    }
+
+    private Salary calculateSalary(Member member, SalaryRequestDto dto, Salary existingSalary) {
         BaseSalary baseSalary = baseSalaryService.getSalaryForMember(member);
         BigDecimal baseAmount = baseSalary.getBaseSalary();
         BigDecimal hourlyRate = baseSalary.getHourlyRate();
@@ -128,34 +84,48 @@ public class SalaryService {
                     .collect(Collectors.toList());
         }
 
-        List<TaxDeduction> newDeductions = new ArrayList<>();
-        for (TaxDeductionDto td : deductionDtos) {
+        Map<String, TaxDeductionDto> uniqueDeductions = deductionDtos.stream()
+                .collect(Collectors.toMap(TaxDeductionDto::getTypeCode, Function.identity(), (a, b) -> a));
+
+        List<TaxDeduction> deductions = new ArrayList<>();
+        for (TaxDeductionDto td : uniqueDeductions.values()) {
             DeductionType type = deductionTypeRepository.findByTypeCode(td.getTypeCode())
                     .orElseThrow(() -> new IllegalArgumentException("공제 유형 없음: " + td.getTypeCode()));
 
             BigDecimal rate = td.getRate() != null ? td.getRate() : type.getDefaultRate();
+            if (rate == null) throw new IllegalArgumentException("공제율이 정의되지 않았습니다: " + td.getTypeCode());
+
             BigDecimal amount = grossPay.multiply(rate).setScale(2, RoundingMode.HALF_UP);
             totalDeduction = totalDeduction.add(amount);
 
             TaxDeduction deduction = new TaxDeduction();
-            deduction.setSalary(existing);
             deduction.setDeductionType(type);
             deduction.setRate(rate);
             deduction.setAmount(amount);
-            newDeductions.add(deduction);
+            deduction.setSalary(existingSalary);
+            deductions.add(deduction);
         }
 
-        existing.setPayDate(dto.getPayDate());
-        existing.setCustomBaseSalary(baseAmount);
-        existing.setHoursBaseSalary(overtimePay);
-        existing.setGrossPay(grossPay);
-        existing.setTotalDeduction(totalDeduction);
-        existing.setNetPay(grossPay.subtract(totalDeduction));
-        existing.setStatus(SalaryStatus.COMPLETED);
-        existing.setTaxDeductions(newDeductions);
+        Salary salary = existingSalary != null ? existingSalary : new Salary();
+        salary.setMember(member);
+        salary.setPayDate(dto.getPayDate() != null ? dto.getPayDate() : getDefaultPayDate());
+        salary.setCustomBaseSalary(baseAmount);
+        salary.setHoursBaseSalary(overtimePay);
+        salary.setGrossPay(grossPay);
+        salary.setTotalDeduction(totalDeduction);
+        salary.setNetPay(grossPay.subtract(totalDeduction));
+        salary.setTaxDeductions(deductions);
 
-        Salary saved = salaryRepository.save(existing);
-        return SalaryDtoConvertor.toResponseDto(saved);
+        for (TaxDeduction deduction : deductions) {
+            deduction.setSalary(salary);
+        }
+
+        return salary;
+    }
+
+
+    private LocalDate getDefaultPayDate() {
+        return LocalDate.now().withDayOfMonth(20);
     }
 
     /**
@@ -163,10 +133,68 @@ public class SalaryService {
      */
     @Transactional(readOnly = true)
     public List<SalaryResponseDto> getSalaryHistoryByMember(String memberId) {
-        List<Salary> salaries = salaryRepository.findByMember_Id(memberId);
+        return salaryRepository.findByMember_IdOrderByPayDateDesc(memberId).stream()
+                .map(SalaryDtoConvertor::toResponseDto)
+                .collect(Collectors.toList());
+    }
+    /**
+     * 월별 급여 조회 (본인 또는 관리자)
+     */
+    public List<SalaryResponseDto> getMonthlySalaries(String memberId, int year, int month) {
+        LocalDate start = LocalDate.of(year, month, 1);
+        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+        return salaryRepository.findByMember_IdAndPayDateBetween(memberId, start, end).stream()
+                .map(SalaryDtoConvertor::toResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 급여 단건 상세 조회
+     */
+    public SalaryResponseDto getSalaryDetail(Integer salaryId, String requesterId) {
+        Salary salary = salaryRepository.findById(salaryId)
+                .orElseThrow(() -> new IllegalArgumentException("급여 내역 없음"));
+
+        Member requester = memberRepository.findById(requesterId)
+                .orElseThrow(() -> new IllegalArgumentException("요청자 정보 없음"));
+
+        if (requester.getRole() != Role.ADMIN && !salary.getMember().getId().equals(requesterId)) {
+            throw new AccessDeniedException("접근 권한이 없습니다.");
+        }
+
+        return SalaryDtoConvertor.toResponseDto(salary);
+    }
+
+    /**
+     * 관리자 전체 급여 조회 (월별)
+     */
+    public List<SalaryResponseDto> getAllSalariesByMonth(int year, int month) {
+        LocalDate start = LocalDate.of(year, month, 1);
+        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+        return salaryRepository.findByPayDateBetween(start, end).stream()
+                .map(SalaryDtoConvertor::toResponseDto)
+                .collect(Collectors.toList());
+    }
+
+
+
+    /**
+     * 급여 상태 변경
+     */
+    @Transactional
+    public void updateSalaryStatus(Integer salaryId, SalaryStatus status) {
+        Salary salary = salaryRepository.findById(salaryId)
+                .orElseThrow(() -> new IllegalArgumentException("급여 내역 없음"));
+        salary.setStatus(status);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SalaryResponseDto> getSalariesByStatus(SalaryStatus status) {
+        List<Salary> salaries = salaryRepository.findByStatus(status);
         return salaries.stream()
                 .map(SalaryDtoConvertor::toResponseDto)
                 .collect(Collectors.toList());
     }
+
 }
 

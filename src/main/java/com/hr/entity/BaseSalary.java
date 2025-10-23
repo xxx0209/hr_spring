@@ -1,5 +1,7 @@
 package com.hr.entity;
 
+import com.hr.constant.BaseSalaryType;
+import com.hr.constant.SalaryStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,7 +23,7 @@ public class BaseSalary {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type") // "POSITION" 또는 "MEMBER"
-    private String type;
+    private BaseSalaryType type;
 
     @Column(name = "reference_id") // 직급명 또는 memberId
     private String referenceId;
