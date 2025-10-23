@@ -1,5 +1,6 @@
 package com.hr.entity;
 
+import com.hr.constant.Role;
 import com.hr.dto.MemberDto;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -26,10 +27,11 @@ public class Member extends BaseEntity {
     private String hiredate;
     private String address;
 
-    @Column(name = "custom_base_salary", precision = 12, scale = 2)
-    private BigDecimal customBaseSalary;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "position_id")
     private Position position;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
 }

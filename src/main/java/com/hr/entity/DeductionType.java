@@ -1,30 +1,30 @@
 package com.hr.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
+
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Entity
 @Getter
 @Setter
-@ToString
-@Table(name = "deductiontypes")
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "deduction_types")
 public class DeductionType {
 
     @Id
     @Column(name = "type_code")
-    private String typeCode;
+    private String typeCode; // 예: NP, HI, EI, IT
 
-    @Column(name = "type_name")
-    private String typeName;
+    private String name;
 
-    @Column(name = "default_rate" ,precision = 12, scale = 2)
+    @Column(name = "default_rate", precision = 5, scale = 4)
     private BigDecimal defaultRate;
-
-    @OneToMany(mappedBy = "deductionType", cascade = CascadeType.ALL)
-    private List<TaxDeduction> taxDeductions;
 }
+
+

@@ -1,16 +1,19 @@
 package com.hr.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
+
 
 import java.math.BigDecimal;
 
 @Getter
 @Setter
-@ToString
-// 공제 항목 관리
+@NoArgsConstructor
+@AllArgsConstructor
 public class TaxDeductionDto {
-    private String typeCode; // 공제 유형 코드
-    private BigDecimal rate; // nullable, defaultRate 사용 가능
+
+    private String typeCode;         // 공제 유형 코드 (예: NP, HI, EI, IT)
+    private BigDecimal rate;         // 공제율 (null이면 기본값 사용)
 }

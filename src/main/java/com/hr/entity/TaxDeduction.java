@@ -1,37 +1,30 @@
 package com.hr.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Entity
 @Getter
 @Setter
-@ToString
+@NoArgsConstructor
 @Table(name = "tax_deductions")
 public class TaxDeduction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "deductiontype_id")
-    private Integer Id;
+    private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "salary_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "salary_id")
     private Salary salary;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_code", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "deduction_type_code")
     private DeductionType deductionType;
 
-    @Column(name = "amount", nullable = false,precision = 12, scale = 2)
-    private BigDecimal amount;
-
-    @Column(name = "rate", precision = 5, scale = 4)
     private BigDecimal rate;
-
+    private BigDecimal amount;
 }
 

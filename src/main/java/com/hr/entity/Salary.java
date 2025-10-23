@@ -1,10 +1,8 @@
 package com.hr.entity;
 
+import com.hr.constant.SalaryStatus;
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,14 +12,14 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@ToString(exclude = "taxDeductions") // 순환 참조 방지
-@EqualsAndHashCode(exclude = "taxDeductions")
+@NoArgsConstructor
 @Table(name = "salaries")
 public class Salary {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "salary_id")
-    private Integer id;
+    private Integer salaryId;
 
     @ManyToOne
     @JoinColumn(name = "member_id")
@@ -30,23 +28,24 @@ public class Salary {
     @Column(name = "pay_date")
     private LocalDate payDate;
 
-    @Column(name = "base_salary", nullable = false,precision = 12, scale = 2)
-    private BigDecimal baseSalary;
+    @Column(name = "custom_base_salary", precision = 12, scale = 2)
+    private BigDecimal customBaseSalary; // 개인 기준 급여 (null 가능)
 
-    @Column(name = "overtime_pay",precision = 12, scale = 2)
-    private BigDecimal overtimePay;
+    @Column(name = "hours_base_salary", precision = 12, scale = 2)
+    private BigDecimal hoursBaseSalary; // 시급 × 1.5 × 시간
 
-    @Column(name = "gross_pay", nullable = false,precision = 12, scale = 2)
+    @Column(name = "gross_pay", precision = 12, scale = 2)
     private BigDecimal grossPay;
 
-    @Column(name = "total_deduction", nullable = false,precision = 12, scale = 2)
+    @Column(name = "total_deduction", precision = 12, scale = 2)
     private BigDecimal totalDeduction;
 
-    private String status;
-
-    @Column(name = "net_pay", nullable = false ,precision = 12, scale = 2)
+    @Column(name = "net_pay", precision = 12, scale = 2)
     private BigDecimal netPay;
 
+    @Enumerated(EnumType.STRING)
+    private SalaryStatus status;
+
     @OneToMany(mappedBy = "salary", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TaxDeduction> taxDeductions = new ArrayList<>();
+    private List<TaxDeduction> taxDeductions = new ArrayList<>();;
 }

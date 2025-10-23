@@ -15,6 +15,6 @@ import java.util.List;
 public class SalaryRequestDto {
     private String memberId;
     private LocalDate payDate;
-    private BigDecimal overtimePay;
-    private List<TaxDeductionDto> deductions;
+    private BigDecimal overtimeHours; // 초과근무 시간
+    private List<TaxDeductionDto> deductions; // 공제 항목 선택
 }
