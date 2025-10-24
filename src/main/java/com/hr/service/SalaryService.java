@@ -1,6 +1,6 @@
 package com.hr.service;
 
-import com.hr.constant.Role;
+import com.hr.constant.MemberRole;
 import com.hr.constant.SalaryStatus;
 import com.hr.dto.SalaryRequestDto;
 import com.hr.dto.SalaryResponseDto;
@@ -140,7 +140,7 @@ public class SalaryService {
         Member requester = memberRepository.findById(requesterId)
                 .orElseThrow(() -> new IllegalArgumentException("요청자 정보 없음"));
 
-        if (requester.getRole() != Role.ADMIN && !salary.getMember().getId().equals(requesterId)) {
+        if (requester.getMemberRole() != MemberRole.ROLE_ADMIN && !salary.getMember().getId().equals(requesterId)) {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
