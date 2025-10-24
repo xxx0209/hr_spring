@@ -1,6 +1,6 @@
 package com.hr.controller;
 
-import com.hr.constant.Role;
+import com.hr.constant.MemberRole;
 import com.hr.constant.SalaryStatus;
 import com.hr.dto.SalaryRequestDto;
 import com.hr.dto.SalaryResponseDto;
@@ -38,7 +38,7 @@ public class SalaryController {
             Principal principal) {
 
         Member currentUser = getCurrentUser(principal);
-        if (currentUser.getRole() == Role.ADMIN || currentUser.getId().equals(memberId)) {
+        if (currentUser.getMemberRole() == MemberRole.ROLE_ADMIN || currentUser.getId().equals(memberId)) {
             List<SalaryResponseDto> salaries = salaryService.getMonthlySalaries(memberId, year, month);
             return ResponseEntity.ok(salaries);
         }
@@ -56,7 +56,7 @@ public class SalaryController {
     @PostMapping
     public ResponseEntity<SalaryResponseDto> createSalary(@RequestBody SalaryRequestDto dto, Principal principal) {
         Member requester = getCurrentUser(principal);
-        if (requester.getRole() != Role.ADMIN && !requester.getId().equals(dto.getMemberId())) {
+        if (requester.getMemberRole() != MemberRole.ROLE_ADMIN && !requester.getId().equals(dto.getMemberId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         SalaryResponseDto response = salaryService.createSalary(dto);
@@ -71,7 +71,7 @@ public class SalaryController {
             Principal principal) {
 
         Member requester = getCurrentUser(principal);
-        if (requester.getRole() != Role.ADMIN) {
+        if (requester.getMemberRole() != MemberRole.ROLE_ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         SalaryResponseDto response = salaryService.updateSalary(salaryId, dto);
@@ -86,7 +86,7 @@ public class SalaryController {
             Principal principal) {
 
         Member requester = getCurrentUser(principal);
-        if (requester.getRole() != Role.ADMIN) {
+        if (requester.getMemberRole() != MemberRole.ROLE_ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -102,7 +102,7 @@ public class SalaryController {
             Principal principal) {
 
         Member requester = getCurrentUser(principal);
-        if (requester.getRole() != Role.ADMIN) {
+        if (requester.getMemberRole() != MemberRole.ROLE_ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -114,7 +114,7 @@ public class SalaryController {
     @GetMapping("/pending")
     public ResponseEntity<List<SalaryResponseDto>> getPendingSalaries(Principal principal) {
         Member requester = getCurrentUser(principal);
-        if (requester.getRole() != Role.ADMIN) {
+        if (requester.getMemberRole() != MemberRole.ROLE_ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 

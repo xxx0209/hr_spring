@@ -5,6 +5,7 @@ import com.hr.entity.Member;
 import com.hr.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
@@ -14,6 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/member")
@@ -47,5 +49,11 @@ public class MemberController {
         String memberId = request.get("memberId");
         boolean available = !memberService.existsById(memberId);  // 존재하지 않으면 사용 가능
         return ResponseEntity.ok(Map.of("available", available));
+    }
+
+    @PostMapping("/login")
+    public void login() {
+        //로그인 처리구현 하기
+        log.debug("로그인 처리 구현해야 함");
     }
 }
