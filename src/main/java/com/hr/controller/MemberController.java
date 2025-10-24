@@ -47,6 +47,9 @@ public class MemberController {
     @PostMapping("/checkId")
     public ResponseEntity<Map<String, Boolean>> checkId(@RequestBody Map<String, String> request) {
         String memberId = request.get("id");
+        if (null != request.get("memberId")) {
+            memberId = request.get("memberId");
+        }
         boolean available = !memberService.existsById(memberId);  // 존재하지 않으면 사용 가능
         return ResponseEntity.ok(Map.of("available", available));
     }
