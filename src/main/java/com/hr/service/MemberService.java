@@ -7,6 +7,8 @@ import com.hr.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -22,5 +24,10 @@ public class MemberService {
 
     public Boolean existsById(String memberId) {
         return memberRepository.existsById(memberId);
+    }
+
+    public Optional<MemberDto> findById(String name) {
+        Member member = memberRepository.findById(name).orElse(null);
+        return Optional.ofNullable(MemberDto.of(member));
     }
 }

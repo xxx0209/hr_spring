@@ -2,10 +2,12 @@ package com.hr.controller;
 
 import com.hr.constant.Role;
 import com.hr.constant.SalaryStatus;
+import com.hr.dto.MemberDto;
 import com.hr.dto.SalaryRequestDto;
 import com.hr.dto.SalaryResponseDto;
 import com.hr.entity.Member;
 import com.hr.repository.MemberRepository;
+import com.hr.service.MemberService;
 import com.hr.service.SalaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,10 +28,11 @@ public class SalaryController {
 
     private final SalaryService salaryService;
     private final MemberRepository memberRepository;
+    private final MemberService memberService ;
 
     // 🔹 공통 사용자 조회
-    private Member getCurrentUser(Principal principal) {
-        return memberRepository.findById(principal.getName())
+    private MemberDto getCurrentUser(Principal principal) {
+        return memberService.findById(principal.getName())
                 .orElseThrow(() -> new IllegalArgumentException("로그인 사용자 정보 없음"));
     }
 
@@ -42,7 +45,7 @@ public class SalaryController {
             @RequestParam int month,
             Principal principal) {
 
-        Member currentUser = getCurrentUser(principal);
+        MemberDto currentUser = getCurrentUser(principal);
         if (currentUser.getRole() == Role.ADMIN || currentUser.getId().equals(memberId)) {
             List<SalaryResponseDto> salaries = salaryService.getMonthlyCompletedSalaries(memberId, year, month);
             return ResponseEntity.ok(salaries);
@@ -60,7 +63,7 @@ public class SalaryController {
     // 3. 급여 생성 (관리자 또는 본인만 가능)
     @PostMapping
     public ResponseEntity<SalaryResponseDto> createSalary(@RequestBody SalaryRequestDto dto, Principal principal) {
-        Member requester = getCurrentUser(principal);
+        MemberDto requester = getCurrentUser(principal);
         if (requester.getRole() != Role.ADMIN && !requester.getId().equals(dto.getMemberId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -75,7 +78,7 @@ public class SalaryController {
             @RequestBody SalaryRequestDto dto,
             Principal principal) {
 
-        Member requester = getCurrentUser(principal);
+        MemberDto requester = getCurrentUser(principal);
         if (requester.getRole() != Role.ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -92,7 +95,7 @@ public class SalaryController {
             @RequestParam(defaultValue = "10") int size,
             Principal principal) {
 
-        Member requester = getCurrentUser(principal);
+        MemberDto requester = getCurrentUser(principal);
         if (requester.getRole() != Role.ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -109,7 +112,7 @@ public class SalaryController {
             @RequestParam SalaryStatus status,
             Principal principal) {
 
-        Member requester = getCurrentUser(principal);
+        MemberDto requester = getCurrentUser(principal);
         if (requester.getRole() != Role.ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -121,7 +124,7 @@ public class SalaryController {
     // 7. 승인 대기 급여 목록 조회 (DRAFT 상태만)
     @GetMapping("/pending")
     public ResponseEntity<List<SalaryResponseDto>> getPendingSalaries(Principal principal) {
-        Member requester = getCurrentUser(principal);
+        MemberDto requester = getCurrentUser(principal);
         if (requester.getRole() != Role.ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
