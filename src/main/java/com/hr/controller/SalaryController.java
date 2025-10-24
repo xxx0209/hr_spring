@@ -46,7 +46,7 @@ public class SalaryController {
             Principal principal) {
 
         MemberDto currentUser = getCurrentUser(principal);
-        if (currentUser.getMemberRole() == MemberRole.ROLE_ADMIN || currentUser.getId().equals(memberId)) {
+        if (currentUser.getMemberRole() == MemberRole.ROLE_ADMIN || currentUser.getMemberId().equals(memberId)) {
             List<SalaryResponseDto> salaries = salaryService.getMonthlyCompletedSalaries(memberId, year, month);
             return ResponseEntity.ok(salaries);
         }
@@ -65,7 +65,7 @@ public class SalaryController {
     public ResponseEntity<SalaryResponseDto> createSalary(@RequestBody SalaryRequestDto dto, Principal principal) {
 
         MemberDto requester = getCurrentUser(principal);
-        if (requester.getMemberRole() != MemberRole.ROLE_ADMIN && !requester.getId().equals(dto.getMemberId())) {
+        if (requester.getMemberRole() != MemberRole.ROLE_ADMIN && !requester.getMemberId().equals(dto.getMemberId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         SalaryResponseDto response = salaryService.createSalary(dto);

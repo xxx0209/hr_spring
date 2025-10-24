@@ -140,7 +140,7 @@ public class SalaryService {
         Member requester = memberRepository.findById(requesterId)
                 .orElseThrow(() -> new IllegalArgumentException("요청자 정보 없음"));
 
-        if (requester.getMemberRole() != MemberRole.ROLE_ADMIN && !salary.getMember().getId().equals(requesterId)) {
+        if (requester.getMemberRole() != MemberRole.ROLE_ADMIN && !salary.getMember().getMemberId().equals(requesterId)) {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
