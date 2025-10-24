@@ -1,6 +1,6 @@
 package com.hr.service;
 
-import com.hr.constant.Role;
+import com.hr.constant.MemberRole;
 import com.hr.constant.SalaryStatus;
 import com.hr.dto.SalaryRequestDto;
 import com.hr.dto.SalaryResponseDto;
@@ -11,6 +11,8 @@ import com.hr.repository.MemberRepository;
 import com.hr.repository.SalaryRepository;
 import com.hr.repository.TaxDeductionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,9 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -34,6 +38,11 @@ public class SalaryService {
     private final DeductionTypeRepository deductionTypeRepository;
     private final TaxDeductionRepository taxDeductionRepository;
 
+    private LocalDate getDefaultPayDate() {
+        return LocalDate.now().withDayOfMonth(20);
+    }
+
+    // 🔹 급여 생성
     public SalaryResponseDto createSalary(SalaryRequestDto dto) {
         Member member = memberRepository.findById(dto.getMemberId())
                 .orElseThrow(() -> new IllegalArgumentException("직원 정보 없음"));
@@ -49,6 +58,7 @@ public class SalaryService {
         return SalaryDtoConvertor.toResponseDto(saved);
     }
 
+    // 🔹 급여 수정
     @Transactional
     public SalaryResponseDto updateSalary(Integer salaryId, SalaryRequestDto dto) {
         Salary existing = salaryRepository.findById(salaryId)
@@ -62,6 +72,7 @@ public class SalaryService {
         return SalaryDtoConvertor.toResponseDto(saved);
     }
 
+    // 🔹 급여 계산 로직
     private Salary calculateSalary(Member member, SalaryRequestDto dto, Salary existingSalary) {
         BaseSalary baseSalary = baseSalaryService.getSalaryForMember(member);
         BigDecimal baseAmount = baseSalary.getBaseSalary();
@@ -77,12 +88,10 @@ public class SalaryService {
         BigDecimal grossPay = baseAmount.add(overtimePay);
         BigDecimal totalDeduction = BigDecimal.ZERO;
 
-        List<TaxDeductionDto> deductionDtos = dto.getDeductions();
-        if (deductionDtos == null || deductionDtos.isEmpty()) {
-            deductionDtos = deductionTypeRepository.findAll().stream()
-                    .map(type -> new TaxDeductionDto(type.getTypeCode(), null))
-                    .collect(Collectors.toList());
-        }
+        List<TaxDeductionDto> deductionDtos = Optional.ofNullable(dto.getDeductions())
+                .orElseGet(() -> deductionTypeRepository.findAll().stream()
+                        .map(type -> new TaxDeductionDto(type.getTypeCode(), null))
+                        .collect(Collectors.toList()));
 
         Map<String, TaxDeductionDto> uniqueDeductions = deductionDtos.stream()
                 .collect(Collectors.toMap(TaxDeductionDto::getTypeCode, Function.identity(), (a, b) -> a));
@@ -92,7 +101,7 @@ public class SalaryService {
             DeductionType type = deductionTypeRepository.findByTypeCode(td.getTypeCode())
                     .orElseThrow(() -> new IllegalArgumentException("공제 유형 없음: " + td.getTypeCode()));
 
-            BigDecimal rate = td.getRate() != null ? td.getRate() : type.getDefaultRate();
+            BigDecimal rate = Optional.ofNullable(td.getRate()).orElse(type.getDefaultRate());
             if (rate == null) throw new IllegalArgumentException("공제율이 정의되지 않았습니다: " + td.getTypeCode());
 
             BigDecimal amount = grossPay.multiply(rate).setScale(2, RoundingMode.HALF_UP);
@@ -123,34 +132,7 @@ public class SalaryService {
         return salary;
     }
 
-
-    private LocalDate getDefaultPayDate() {
-        return LocalDate.now().withDayOfMonth(20);
-    }
-
-    /**
-     * 직원별 급여 이력 조회
-     */
-    @Transactional(readOnly = true)
-    public List<SalaryResponseDto> getSalaryHistoryByMember(String memberId) {
-        return salaryRepository.findByMember_IdOrderByPayDateDesc(memberId).stream()
-                .map(SalaryDtoConvertor::toResponseDto)
-                .collect(Collectors.toList());
-    }
-    /**
-     * 월별 급여 조회 (본인 또는 관리자)
-     */
-    public List<SalaryResponseDto> getMonthlySalaries(String memberId, int year, int month) {
-        LocalDate start = LocalDate.of(year, month, 1);
-        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
-        return salaryRepository.findByMember_IdAndPayDateBetween(memberId, start, end).stream()
-                .map(SalaryDtoConvertor::toResponseDto)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 급여 단건 상세 조회
-     */
+    // 🔹 급여 상세 조회
     public SalaryResponseDto getSalaryDetail(Integer salaryId, String requesterId) {
         Salary salary = salaryRepository.findById(salaryId)
                 .orElseThrow(() -> new IllegalArgumentException("급여 내역 없음"));
@@ -158,29 +140,49 @@ public class SalaryService {
         Member requester = memberRepository.findById(requesterId)
                 .orElseThrow(() -> new IllegalArgumentException("요청자 정보 없음"));
 
-        if (requester.getRole() != Role.ADMIN && !salary.getMember().getId().equals(requesterId)) {
+        if (requester.getMemberRole() != MemberRole.ROLE_ADMIN && !salary.getMember().getId().equals(requesterId)) {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
         return SalaryDtoConvertor.toResponseDto(salary);
     }
 
-    /**
-     * 관리자 전체 급여 조회 (월별)
-     */
-    public List<SalaryResponseDto> getAllSalariesByMonth(int year, int month) {
-        LocalDate start = LocalDate.of(year, month, 1);
-        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
-        return salaryRepository.findByPayDateBetween(start, end).stream()
+    // 🔹 직원 급여 이력 (비페이징)
+    public List<SalaryResponseDto> getSalaryHistoryByMember(String memberId) {
+        return salaryRepository.findByMember_IdOrderByPayDateDesc(memberId).stream()
                 .map(SalaryDtoConvertor::toResponseDto)
                 .collect(Collectors.toList());
     }
 
 
 
-    /**
-     * 급여 상태 변경
-     */
+    // 🔹 직원 월별 급여 조회 (COMPLETED만)
+    public List<SalaryResponseDto> getMonthlyCompletedSalaries(String memberId, int year, int month) {
+        LocalDate start = LocalDate.of(year, month, 1);
+        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+
+        return salaryRepository.findByMember_IdAndPayDateBetweenAndStatus(
+                memberId, start, end, SalaryStatus.COMPLETED
+        ).stream().map(SalaryDtoConvertor::toResponseDto).collect(Collectors.toList());
+    }
+
+
+
+    // 🔹 관리자 전체 급여 조회 (월별, 페이징)
+    public Page<SalaryResponseDto> getPagedAllSalariesByMonth(YearMonth month, Pageable pageable) {
+        return salaryRepository.findBySalaryMonth(month, pageable)
+                .map(SalaryDtoConvertor::toResponseDto);
+    }
+
+
+    // 🔹 직원 월별 급여 조회 (페이징)
+    public Page<SalaryResponseDto> getPagedMonthlySalaries(String memberId, YearMonth month, SalaryStatus status, Pageable pageable) {
+        return salaryRepository.findByMember_IdAndSalaryMonthAndStatus(memberId, month, status, pageable)
+                .map(SalaryDtoConvertor::toResponseDto);
+    }
+
+
+    // 🔹 급여 상태 변경
     @Transactional
     public void updateSalaryStatus(Integer salaryId, SalaryStatus status) {
         Salary salary = salaryRepository.findById(salaryId)
@@ -188,13 +190,12 @@ public class SalaryService {
         salary.setStatus(status);
     }
 
-    @Transactional(readOnly = true)
+    // 🔹 상태별 급여 목록 조회 (비페이징)
     public List<SalaryResponseDto> getSalariesByStatus(SalaryStatus status) {
-        List<Salary> salaries = salaryRepository.findByStatus(status);
-        return salaries.stream()
+        return salaryRepository.findByStatus(status).stream()
                 .map(SalaryDtoConvertor::toResponseDto)
                 .collect(Collectors.toList());
     }
-
 }
+
 

@@ -29,7 +29,7 @@ class MemberServiceTest {
     @Test
     void save() {
         MemberDto memberDto = new MemberDto();
-        memberDto.setId("ljy02090209");
+        //memberDto.setId("ljy02090209");
         memberDto.setName("홍길동");
         memberDto.setPassword("KLaaaaaa!@#123");
         memberDto.setEmail("ljy02090209@naver.com");

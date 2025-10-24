@@ -1,7 +1,6 @@
 package com.hr.entity;
 
-import com.hr.constant.Role;
-import com.hr.dto.MemberDto;
+import com.hr.constant.MemberRole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,12 +29,12 @@ public class Member extends BaseEntity {
     private Position position;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private MemberRole memberRole;
 
     @PrePersist
     public void prePersist() {
-        if (role == null) {
-            role = Role.USER;
+        if (memberRole == null) {
+            memberRole = MemberRole.ROLE_USER;
         }
     }
 

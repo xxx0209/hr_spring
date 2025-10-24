@@ -1,7 +1,6 @@
 package com.hr.entity;
 
 import com.hr.constant.BaseSalaryType;
-import com.hr.constant.SalaryStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,5 +32,13 @@ public class BaseSalary {
 
     @Column(name = "hourly_rate", precision = 12, scale = 2)
     private BigDecimal hourlyRate;
+
+    public BaseSalary(BaseSalaryType type, String referenceId, BigDecimal baseSalary, BigDecimal hourlyRate) {
+        this.type = type;
+        this.referenceId = referenceId;
+        this.baseSalary = baseSalary;
+        this.hourlyRate = hourlyRate;
+    }
+
 }
 
