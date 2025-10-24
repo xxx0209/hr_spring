@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +29,10 @@ public class Salary {
     @Column(name = "pay_date")
     private LocalDate payDate;
 
+    @Column(name = "salary_month", nullable = false)
+    private YearMonth salaryMonth;
+
+
     @Column(name = "custom_base_salary", precision = 12, scale = 2)
     private BigDecimal customBaseSalary; // 개인 기준 급여 (null 가능)
 
@@ -48,4 +53,6 @@ public class Salary {
 
     @OneToMany(mappedBy = "salary", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaxDeduction> taxDeductions = new ArrayList<>();;
+
+
 }
