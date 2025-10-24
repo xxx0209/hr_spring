@@ -24,6 +24,6 @@ public class RequestService {
     }
 
     public List<Request> findByMember(String memberId) {
-        return requestRepository.findByMember_Id(memberId);
+        return null; // requestRepository.findByMember_Id(memberId);
     }
 }

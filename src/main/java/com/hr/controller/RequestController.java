@@ -28,6 +28,6 @@ public class RequestController {
 
     @GetMapping("/member/{memberId}")
     public List<Request> getByMember(@PathVariable String memberId) {
-        return requestService.findByMember(memberId);
+        return null; //requestService.findByMember(memberId);
     }
 }
