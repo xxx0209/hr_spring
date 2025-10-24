@@ -11,7 +11,7 @@ public class SalaryDtoConvertor {
     public static SalaryResponseDto toResponseDto(Salary salary) {
         SalaryResponseDto dto = new SalaryResponseDto();
         dto.setSalaryId(salary.getSalaryId());
-        dto.setMemberId(salary.getMember().getMemberId());
+        dto.setMemberId(salary.getMember().getId());
         dto.setMemberName(salary.getMember().getName());
         dto.setPayDate(salary.getPayDate());
         dto.setCustomBaseSalary(salary.getCustomBaseSalary());

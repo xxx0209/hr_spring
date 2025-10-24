@@ -14,9 +14,9 @@ public class BaseSalaryService {
     private final BaseSalaryRepository baseSalaryRepository;
 
     public BaseSalary getSalaryForMember(Member member) {
-        return baseSalaryRepository.findByTypeAndReferenceId(BaseSalaryType.MEMBER, member.getMemberId())
+        return baseSalaryRepository.findByTypeAndReferenceId(BaseSalaryType.MEMBER, member.getId())
                 .or(() -> baseSalaryRepository.findByTypeAndReferenceId(BaseSalaryType.POSITION, member.getPosition().getTitle()))
-                .orElseThrow(() -> new IllegalStateException("기준 급여 정보가 없습니다: " + member.getMemberId()));
+                .orElseThrow(() -> new IllegalStateException("기준 급여 정보가 없습니다: " + member.getId()));
     }
 }
 

@@ -53,7 +53,7 @@ public class MemberService implements UserDetailsService {
         //System.out.println(user.getAuthorities());
         // 출력: [ROLE_USER]
         return User.builder()
-                .username(member.getMemberId())
+                .username(member.getId())
                 .password(member.getPassword())
                 .authorities(List.of(() -> member.getMemberRole().name()
                 )) //유저에게 부여할 권한(Role)을 지정합니다. Spring Security는 권한 이름 앞에 "ROLE_" 접두사를 권장
