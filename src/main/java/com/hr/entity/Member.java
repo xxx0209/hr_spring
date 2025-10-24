@@ -16,7 +16,7 @@ public class Member extends BaseEntity {
 
     @Id // 이 컬럼은 primary key입니다.
     @Column(name = "member_id") // 컬럼 이름을 변경합니다.
-    private String id;
+    private String memberId;
     private String name;
     private String password;
     private String email;

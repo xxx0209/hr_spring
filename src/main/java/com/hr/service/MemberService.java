@@ -34,6 +34,12 @@ public class MemberService implements UserDetailsService {
         return memberRepository.existsById(memberId);
     }
 
+    public Optional<MemberDto> findById(String memberId) {
+        Member member = memberRepository.findById(memberId).orElse(null);
+        return Optional.ofNullable(MemberDto.of(member));
+
+    }
+
     //UserDetailsService는 Spring Security의 핵심 인터페이스 중 하나
     //인증 시(UsernamePasswordAuthenticationToken)
     //Spring Security가 자동으로 이 인터페이스의
@@ -47,15 +53,10 @@ public class MemberService implements UserDetailsService {
         //System.out.println(user.getAuthorities());
         // 출력: [ROLE_USER]
         return User.builder()
-                .username(member.getId())
+                .username(member.getMemberId())
                 .password(member.getPassword())
-                .authorities(List.of(() -> "ROLE_USER")) //유저에게 부여할 권한(Role)을 지정합니다. Spring Security는 권한 이름 앞에 "ROLE_" 접두사를 권장
+                .authorities(List.of(() -> member.getMemberRole().name()
+                )) //유저에게 부여할 권한(Role)을 지정합니다. Spring Security는 권한 이름 앞에 "ROLE_" 접두사를 권장
                 .build();
-    }
-
-    public Optional<MemberDto> findById(String name) {
-        Member member = memberRepository.findById(name).orElse(null);
-        return Optional.ofNullable(MemberDto.of(member));
-
     }
 }
