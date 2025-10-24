@@ -2,17 +2,23 @@ package com.hr.controller;
 
 import com.hr.constant.MemberRole;
 import com.hr.constant.SalaryStatus;
+import com.hr.dto.MemberDto;
 import com.hr.dto.SalaryRequestDto;
 import com.hr.dto.SalaryResponseDto;
-import com.hr.entity.Member;
+
 import com.hr.repository.MemberRepository;
+import com.hr.service.MemberService;
 import com.hr.service.SalaryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -22,14 +28,16 @@ public class SalaryController {
 
     private final SalaryService salaryService;
     private final MemberRepository memberRepository;
+    private final MemberService memberService ;
 
     // 🔹 공통 사용자 조회
-    private Member getCurrentUser(Principal principal) {
-        return memberRepository.findById(principal.getName())
+    private MemberDto getCurrentUser(Principal principal) {
+        return memberService.findById(principal.getName())
                 .orElseThrow(() -> new IllegalArgumentException("로그인 사용자 정보 없음"));
     }
 
-    // 1. 월별 급여 내역 조회 (본인 또는 관리자)
+
+    // 1. 월별 급여 내역 조회 (본인 또는 관리자) - 승인된 급여만
     @GetMapping("/member/{memberId}/monthly")
     public ResponseEntity<List<SalaryResponseDto>> getMonthlySalaries(
             @PathVariable String memberId,
@@ -37,9 +45,9 @@ public class SalaryController {
             @RequestParam int month,
             Principal principal) {
 
-        Member currentUser = getCurrentUser(principal);
+        MemberDto currentUser = getCurrentUser(principal);
         if (currentUser.getMemberRole() == MemberRole.ROLE_ADMIN || currentUser.getId().equals(memberId)) {
-            List<SalaryResponseDto> salaries = salaryService.getMonthlySalaries(memberId, year, month);
+            List<SalaryResponseDto> salaries = salaryService.getMonthlyCompletedSalaries(memberId, year, month);
             return ResponseEntity.ok(salaries);
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -52,10 +60,11 @@ public class SalaryController {
         return ResponseEntity.ok(dto);
     }
 
-    // 3. 급여 생성
+    // 3. 급여 생성 (관리자 또는 본인만 가능)
     @PostMapping
     public ResponseEntity<SalaryResponseDto> createSalary(@RequestBody SalaryRequestDto dto, Principal principal) {
-        Member requester = getCurrentUser(principal);
+
+        MemberDto requester = getCurrentUser(principal);
         if (requester.getMemberRole() != MemberRole.ROLE_ADMIN && !requester.getId().equals(dto.getMemberId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -63,14 +72,14 @@ public class SalaryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // 4. 급여 수정
+    // 4. 급여 수정 (관리자만 가능)
     @PutMapping("/{salaryId}")
     public ResponseEntity<SalaryResponseDto> updateSalary(
             @PathVariable Integer salaryId,
             @RequestBody SalaryRequestDto dto,
             Principal principal) {
 
-        Member requester = getCurrentUser(principal);
+        MemberDto requester = getCurrentUser(principal);
         if (requester.getMemberRole() != MemberRole.ROLE_ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -78,30 +87,33 @@ public class SalaryController {
         return ResponseEntity.ok(response);
     }
 
-    // 5. 관리자 전체 급여 조회 (월별)
+    // 5. 관리자 전체 급여 조회 (월별, 페이징)
     @GetMapping("/all")
-    public ResponseEntity<List<SalaryResponseDto>> getAllSalariesByMonth(
+    public ResponseEntity<Page<SalaryResponseDto>> getAllSalariesByMonth(
             @RequestParam int year,
             @RequestParam int month,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             Principal principal) {
 
-        Member requester = getCurrentUser(principal);
+        MemberDto requester = getCurrentUser(principal);
         if (requester.getMemberRole() != MemberRole.ROLE_ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        List<SalaryResponseDto> salaries = salaryService.getAllSalariesByMonth(year, month);
-        return ResponseEntity.ok(salaries);
+        YearMonth salaryMonth = YearMonth.of(year, month);
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(salaryService.getPagedAllSalariesByMonth(salaryMonth, pageable));
     }
 
-    // 6. 급여 상태 변경
+    // 6. 급여 상태 변경 (관리자만 가능)
     @PatchMapping("/{salaryId}/status")
     public ResponseEntity<Void> updateSalaryStatus(
             @PathVariable Integer salaryId,
             @RequestParam SalaryStatus status,
-            Principal principal) {
+            Principal principal) {        
 
-        Member requester = getCurrentUser(principal);
+        MemberDto requester = getCurrentUser(principal);
         if (requester.getMemberRole() != MemberRole.ROLE_ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -110,10 +122,10 @@ public class SalaryController {
         return ResponseEntity.ok().build();
     }
 
-    // 7. 승인 대기 급여 목록 조회
+    // 7. 승인 대기 급여 목록 조회 (DRAFT 상태만)
     @GetMapping("/pending")
     public ResponseEntity<List<SalaryResponseDto>> getPendingSalaries(Principal principal) {
-        Member requester = getCurrentUser(principal);
+        MemberDto requester = getCurrentUser(principal);
         if (requester.getMemberRole() != MemberRole.ROLE_ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }

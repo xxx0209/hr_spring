@@ -1,6 +1,5 @@
 package com.hr.service;
 
-import com.hr.constant.Role;
 import com.hr.dto.MemberDto;
 import com.hr.entity.Member;
 import com.hr.repository.MemberRepository;
@@ -13,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -51,5 +51,11 @@ public class MemberService implements UserDetailsService {
                 .password(member.getPassword())
                 .authorities(List.of(() -> "ROLE_USER")) //유저에게 부여할 권한(Role)을 지정합니다. Spring Security는 권한 이름 앞에 "ROLE_" 접두사를 권장
                 .build();
+    }
+
+    public Optional<MemberDto> findById(String name) {
+        Member member = memberRepository.findById(name).orElse(null);
+        return Optional.ofNullable(MemberDto.of(member));
+
     }
 }

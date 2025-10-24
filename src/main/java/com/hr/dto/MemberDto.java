@@ -1,7 +1,8 @@
 package com.hr.dto;
 
+import com.hr.constant.MemberRole;
 import com.hr.entity.Member;
-import jakarta.persistence.Column;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -16,7 +17,7 @@ import lombok.ToString;
 public class MemberDto extends BaseDto {
 
     @NotBlank(message = "아이디는 필수 입력 사항입니다.")
-    private String memberId;
+    private String id;
 
     @NotBlank(message = "이름은 필수 입력 사항입니다.")
     private String name;
@@ -36,6 +37,8 @@ public class MemberDto extends BaseDto {
 
     @NotBlank(message = "주소는 필수 입력 사항입니다.")
     private String address;
+
+    private MemberRole memberRole;
 
     public Member careteMember() {
         return modelMapper.map(this, Member.class);
