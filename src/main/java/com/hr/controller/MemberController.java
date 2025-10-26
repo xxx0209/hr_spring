@@ -1,5 +1,7 @@
 package com.hr.controller;
 
+import com.hr.config.IncludeEnums;
+import com.hr.constant.Gender;
 import com.hr.dto.MemberDto;
 import com.hr.entity.Member;
 import com.hr.service.MemberService;
@@ -52,9 +54,4 @@ public class MemberController {
         return ResponseEntity.ok(Map.of("available", available));
     }
 
-    @PostMapping("/login")
-    public void login() {
-        //로그인 처리구현 하기
-        log.debug("로그인 처리 구현해야 함");
-    }
 }
