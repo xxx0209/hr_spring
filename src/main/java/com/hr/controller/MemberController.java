@@ -1,5 +1,7 @@
 package com.hr.controller;
 
+import com.hr.config.IncludeEnums;
+import com.hr.constant.Gender;
 import com.hr.dto.MemberDto;
 import com.hr.entity.Member;
 import com.hr.service.MemberService;
@@ -7,11 +9,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,9 +54,4 @@ public class MemberController {
         return ResponseEntity.ok(Map.of("available", available));
     }
 
-    @PostMapping("/login")
-    public void login() {
-        //로그인 처리구현 하기
-        log.debug("로그인 처리 구현해야 함");
-    }
 }

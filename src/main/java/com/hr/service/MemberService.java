@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class MemberService implements UserDetailsService {
+public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
@@ -40,23 +40,4 @@ public class MemberService implements UserDetailsService {
 
     }
 
-    //UserDetailsService는 Spring Security의 핵심 인터페이스 중 하나
-    //인증 시(UsernamePasswordAuthenticationToken)
-    //Spring Security가 자동으로 이 인터페이스의
-    //loadUserByUsername() 메서드를 호출하여
-    //사용자 정보를 조회
-    @Override
-    public UserDetails loadUserByUsername(String memberId) throws UsernameNotFoundException {
-        //회원 정보 조회
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new UsernameNotFoundException("존재하지 앟는 사용자입니다."));
-        //System.out.println(user.getAuthorities());
-        // 출력: [ROLE_USER]
-        return User.builder()
-                .username(member.getId())
-                .password(member.getPassword())
-                .authorities(List.of(() -> member.getMemberRole().name()
-                )) //유저에게 부여할 권한(Role)을 지정합니다. Spring Security는 권한 이름 앞에 "ROLE_" 접두사를 권장
-                .build();
-    }
 }
