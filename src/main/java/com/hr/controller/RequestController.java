@@ -30,4 +30,15 @@ public class RequestController {
     public List<Request> getByMember(@PathVariable String memberId) {
         return null; //requestService.findByMember(memberId);
     }
+
+    @PutMapping("/{id}")
+    public Request updateRequest(@PathVariable Long id, @RequestBody RequestDto dto) {
+        return requestService.update(id, dto);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteRequest(@PathVariable Long id) {
+        requestService.delete(id);
+    }
+
 }

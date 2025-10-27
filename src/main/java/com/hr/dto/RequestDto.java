@@ -1,11 +1,12 @@
 // dto/RequestDto.java
 package com.hr.dto;
 
-import com.hr.entity.Member;
 import com.hr.entity.Request;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -13,49 +14,53 @@ import java.time.LocalDateTime;
 public class RequestDto extends BaseDto {
 
     private Long id;
+
+    // Member.id가 String이므로 String 유지
     private String memberId;
+
     private String requestType;
     private String content;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+
+    // 프론트에서 오는 "YYYY-MM-DD" 포맷 그대로 받기
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate startDate;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
+
     private LocalDateTime dateTime;
     private String status;
 
     public Request toEntity() {
-        // memberId만 넘어올 경우 직접 Member 객체를 생성
-        Member member = new Member();
-        member.setMemberId(memberId);
+        Request r = new Request();
+        r.setId(id);
 
-        Request request = new Request();
-        request.setId(id);
-        request.setMember(member);
-        request.setRequestType(requestType);
-        request.setContent(content);
-        request.setStartDate(startDate);
-        request.setEndDate(endDate);
-        request.setDateTime(dateTime != null ? dateTime : LocalDateTime.now());
-        request.setStatus(status != null ? status : "작성중");
-        return request;
-    }
+        // 현재 Request 엔티티가 memberId(String)만 갖고 있으므로 여기를 사용
+        r.setMemberId(memberId);
 
-//    public static RequestDto of(Request entity) {
-//        RequestDto dto = new RequestDto();
-//        dto.setId(entity.getId());
-//        dto.setMemberId(entity.getMember().getMemberId());
-//        dto.setRequestType(entity.getRequestType());
-//        dto.setContent(entity.getContent());
-//        dto.setStartDate(entity.getStartDate());
-//        dto.setEndDate(entity.getEndDate());
-//        dto.setDateTime(entity.getDateTime());
-//        dto.setStatus(entity.getStatus());
-//        return dto;
-//    }
+        r.setRequestType(requestType);
+        r.setContent(content);
 
-    public Request careteMember() {
-        return modelMapper.map(this, Request.class);
+        // LocalDate → LocalDateTime(자정) 변환
+        r.setStartDate(startDate != null ? startDate.atStartOfDay() : null);
+        r.setEndDate(endDate != null ? endDate.atStartOfDay() : null);
+
+        r.setDateTime(dateTime != null ? dateTime : LocalDateTime.now());
+        r.setStatus(status != null ? status : "작성중");
+        return r;
     }
 
     public static RequestDto of(Request request) {
-        return modelMapper.map(request, RequestDto.class);
+        RequestDto dto = new RequestDto();
+        dto.setId(request.getId());
+        dto.setMemberId(request.getMemberId());
+        dto.setRequestType(request.getRequestType());
+        dto.setContent(request.getContent());
+        // LocalDateTime → LocalDate (표시 용도면 필요 없고, 유지하고 싶으면 아래처럼)
+        dto.setStartDate(request.getStartDate() != null ? request.getStartDate().toLocalDate() : null);
+        dto.setEndDate(request.getEndDate() != null ? request.getEndDate().toLocalDate() : null);
+        dto.setDateTime(request.getDateTime());
+        dto.setStatus(request.getStatus());
+        return dto;
     }
 }
