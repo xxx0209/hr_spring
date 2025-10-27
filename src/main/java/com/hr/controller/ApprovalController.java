@@ -22,7 +22,7 @@ public class ApprovalController {
     }
 
     @GetMapping("/request/{requestId}")
-    public List<Approval> getByRequest(@PathVariable Long requestId) {
+    public Approval getByRequest(@PathVariable Long requestId) {
         return approvalService.findByRequest(requestId);
     }
 }

@@ -27,7 +27,7 @@ import java.util.List;
 public class SalaryController {
 
     private final SalaryService salaryService;
-    private final MemberRepository memberRepository;
+    //private final MemberRepository memberRepository;
     private final MemberService memberService ;
 
     // 🔹 공통 사용자 조회

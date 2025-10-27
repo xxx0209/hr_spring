@@ -7,8 +7,6 @@ import com.hr.repository.ApprovalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class ApprovalService {
@@ -19,7 +17,7 @@ public class ApprovalService {
         return approvalRepository.save(dto.toEntity());
     }
 
-    public List<Approval> findByRequest(Long requestId) {
-        return approvalRepository.findByRequest_Id(requestId);
+    public Approval findByRequest(Long requestId) {
+        return approvalRepository.findById(requestId).orElse(null);
     }
 }
