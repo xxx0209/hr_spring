@@ -1,25 +1,28 @@
 package com.hr.entity;
 
+import com.hr.constant.PositionCode;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
-import java.util.List;
-
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString(exclude = "members")
+@Getter @Setter @ToString
 @Table(name = "positions")
-public class Position {
+public class Position extends BaseEntity{
 
     @Id
-    @Column(name = "title")
-    private String title; // 직급명 (예: 인턴, 직원, 대리, 사장)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long positionId;
 
-    @OneToMany(mappedBy = "position")
-    private List<Member> members;
+    @Column(nullable = false, unique = true, length = 50)
+    private String positionCode;  // INTERN, STAFF, ASSISTANT, CEO
+
+    @Column(nullable = false, length = 50)
+    private String positionName; // 인턴, 직원, 대리, 사장
+
+    @Column(length = 255)
+    private String description;
+
+    @Column(nullable = false)
+    private Boolean active = true;
 
 }

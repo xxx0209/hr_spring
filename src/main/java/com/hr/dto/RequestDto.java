@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class RequestDto extends BaseDto {
+public class RequestDto extends BaseDto<Request> {
 
     private Long id;
     private String memberId;
@@ -20,11 +20,8 @@ public class RequestDto extends BaseDto {
     private LocalDateTime dateTime;
     private String status;
 
-    public Request toEntity() {
-        return modelMapper.map(this, Request.class);
-    }
-
-    public static RequestDto of(Request entity) {
-        return modelMapper.map(entity, RequestDto.class);
+    @Override
+    protected Class<Request> getEntityClass() {
+        return Request.class;
     }
 }

@@ -38,7 +38,7 @@ public class SecurityConfig {
                 //JWT 기반 인증은 세션을 사용하지 않음 → Stateless 서버는 인증 상태를 저장하지 않고, 매 요청마다 JWT 검증
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
+                        .requestMatchers("/**",
                                 "/member/**", //회원가입/아이디중복 체크
                                 "/auth/**",
                         "/api/**").permitAll() //jwt 토큰관련/로그인/로그아웃
