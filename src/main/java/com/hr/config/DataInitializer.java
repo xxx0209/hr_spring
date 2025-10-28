@@ -31,7 +31,7 @@ public class DataInitializer {
             baseSalaryRepository.save(new BaseSalary(
                     BaseSalaryType.POSITION, "직원", new BigDecimal("2600000"), new BigDecimal("12000")));
             baseSalaryRepository.save(new BaseSalary(
-                    BaseSalaryType.POSITION, "매니저", new BigDecimal("4000000"), new BigDecimal("14000")));
+                    BaseSalaryType.POSITION, "대리", new BigDecimal("4000000"), new BigDecimal("14000")));
             baseSalaryRepository.save(new BaseSalary(
                     BaseSalaryType.POSITION, "사장", new BigDecimal("6000000"), new BigDecimal("20000")));
         }
