@@ -41,6 +41,9 @@ public class Request extends BaseEntity {
     @Column(name = "date_time")
     private LocalDateTime dateTime;
 
+    @Column(name = "price")
+    private Integer price;
+
     @Column(length = 100)
     private String status; // 진행 상태(작성중, 승인대기, 승인, 반려 등)
 }

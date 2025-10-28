@@ -41,4 +41,8 @@ public class RequestController {
         requestService.delete(id);
     }
 
+    @PatchMapping("/{id}/status")
+    public void updateStatus(@PathVariable Long id, @RequestBody RequestDto dto) {
+        requestService.updateStatus(id, dto.getStatus());
+    }
 }
