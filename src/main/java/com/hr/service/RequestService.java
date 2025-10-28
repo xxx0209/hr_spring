@@ -35,6 +35,7 @@ public class RequestService {
 
     // 수정
     public Request update(Long id, RequestDto dto) {
+
         Request existing = requestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("기안을 찾을 수 없습니다."));
 
