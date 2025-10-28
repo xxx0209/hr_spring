@@ -14,7 +14,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class MemberDto extends BaseDto {
+public class MemberDto extends BaseDto<Member> {
 
     @NotBlank(message = "아이디는 필수 입력 사항입니다.")
     private String id;
@@ -42,15 +42,13 @@ public class MemberDto extends BaseDto {
 
     private MemberRole memberRole;
 
-    public Member careteMember() {
-        // 임시적으로 추가
-        if (memberId != null) {
-            id = memberId;
-        }
-        return modelMapper.map(this, Member.class);
+    public void setId(String id) {
+        this.id = id;
+        this.memberId = id;
     }
 
-    public static MemberDto of(Member member) {
-        return modelMapper.map(member, MemberDto.class);
+    @Override
+    protected Class<Member> getEntityClass() {
+        return Member.class;
     }
 }

@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class ApprovalDto extends BaseDto {
+public class ApprovalDto extends BaseDto<Approval> {
 
     private Long id;
     private Long requestId;
@@ -20,11 +20,8 @@ public class ApprovalDto extends BaseDto {
     private Integer stepOrder;
     private Boolean isFinal;
 
-    public Approval toEntity() {
-        return modelMapper.map(this, Approval.class);
-    }
-
-    public static ApprovalDto of(Approval entity) {
-        return modelMapper.map(entity, ApprovalDto.class);
+    @Override
+    protected Class<Approval> getEntityClass() {
+        return Approval.class;
     }
 }

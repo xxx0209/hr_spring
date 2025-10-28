@@ -8,6 +8,8 @@ import lombok.ToString;
 import org.modelmapper.ModelMapper;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "members")
@@ -15,21 +17,32 @@ import java.math.BigDecimal;
 public class Member extends BaseEntity {
 
     @Id // 이 컬럼은 primary key입니다.
-    @Column(name = "member_id") // 컬럼 이름을 변경합니다.
-    private String id;
+    @Column(name = "member_id", length = 50)
+    private String id; //PK (자동 증가 X)
+    @Column(nullable = false, length = 50)
     private String name;
+    @Column(nullable = false)
     private String password;
+
+    @Column(length = 100)
     private String email;
+    @Column(length = 20)
     private String gender;
+    @Column(length = 8)
     private String hiredate;
+    @Column(length = 500)
     private String address;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "position_id")
-    private Position position;
+    private Position position; // FK → positions.position_id
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
     private MemberRole memberRole;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<PositionHistory> histories = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

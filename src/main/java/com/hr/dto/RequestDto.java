@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class RequestDto extends BaseDto {
+public class RequestDto {//extends BaseDto<Request> {
 
     private Long id;
 

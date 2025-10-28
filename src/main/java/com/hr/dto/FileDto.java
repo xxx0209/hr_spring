@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class FileDto extends BaseDto {
+public class FileDto extends BaseDto<File> {
 
     private Long id;
     private Long requestId;
@@ -15,11 +15,9 @@ public class FileDto extends BaseDto {
     private String filePath;
     private Long fileSize;
 
-    public File toEntity() {
-        return modelMapper.map(this, File.class);
+    @Override
+    protected Class<File> getEntityClass() {
+        return File.class;
     }
 
-    public static FileDto of(File entity) {
-        return modelMapper.map(entity, FileDto.class);
-    }
 }

@@ -3,6 +3,7 @@ package com.hr.controller;
 import com.hr.config.IncludeEnums;
 import com.hr.constant.Gender;
 import com.hr.dto.MemberDto;
+import com.hr.dto.SimpleMemberDto;
 import com.hr.entity.Member;
 import com.hr.service.MemberService;
 import jakarta.validation.Valid;
@@ -13,6 +14,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -52,6 +54,14 @@ public class MemberController {
         }
         boolean available = !memberService.existsById(memberId);  // 존재하지 않으면 사용 가능
         return ResponseEntity.ok(Map.of("available", available));
+    }
+
+    @GetMapping("list")
+    public List<SimpleMemberDto> getAllMembers() {
+
+        List<SimpleMemberDto> ttt = memberService.findAll();
+
+        return ttt;
     }
 
 }
