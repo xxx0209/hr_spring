@@ -31,6 +31,8 @@ public class RequestDto extends BaseDto {
     private LocalDateTime dateTime;
     private String status;
 
+    private Integer price;
+
     public Request toEntity() {
         Request r = new Request();
         r.setId(id);
