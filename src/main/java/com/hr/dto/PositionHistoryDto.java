@@ -17,8 +17,11 @@ public class PositionHistoryDto extends BaseDto<PositionHistory> {
 
     private Long id;
     private String memberId;
+    private String memberName;
     private Long oldPositionId;
+    private String oldPositionName;
     private Long newPositionId;
+    private String newPositionName;
     private String changeReason;
     private LocalDateTime changedAt;
 

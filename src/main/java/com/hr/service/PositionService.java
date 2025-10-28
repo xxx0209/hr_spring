@@ -55,7 +55,7 @@ public class PositionService {
     public List<SimplePositionDto> findAll() {
         return positionRepository.findAll()
                 .stream()
-                .map(p -> SimpleMemberDto.fromEntity(p, SimplePositionDto.class))
+                .map(p -> SimplePositionDto.fromEntity(p, SimplePositionDto.class))
                 .toList();
     }
 }

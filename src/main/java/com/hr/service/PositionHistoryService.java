@@ -1,6 +1,5 @@
 package com.hr.service;
 
-import com.hr.dto.PositionDto;
 import com.hr.dto.PositionHistoryDto;
 import com.hr.entity.Member;
 import com.hr.entity.Position;
@@ -10,9 +9,7 @@ import com.hr.repository.PositionHistoryRepository;
 import com.hr.repository.PositionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,16 +19,15 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PositionHistoryService {
 
     private final PositionHistoryRepository positionHistoryRepository;
     private final MemberRepository memberRepository;
     private final PositionRepository positionRepository;
 
-    public List<PositionHistoryDto> findAll() {
-        return positionHistoryRepository.findAll()
-                .stream().map(p -> PositionHistoryDto.fromEntity(p, PositionHistoryDto.class))
-                .collect(Collectors.toList());
+    public Page<PositionHistoryDto> findAll(Pageable pageable) {
+        return positionHistoryRepository.findAllAsDto(pageable);
     }
 
     public PositionHistoryDto save(PositionHistoryDto positionHistoryDto) {
@@ -55,7 +51,6 @@ public class PositionHistoryService {
     }
 
     //여기서 부터 다시
-    @Transactional
     public void changeMemberPosition(String memberId, Long newPositionId, String reason) {
 
         // 회원 정보 조회

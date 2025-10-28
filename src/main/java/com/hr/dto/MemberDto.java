@@ -42,6 +42,11 @@ public class MemberDto extends BaseDto<Member> {
 
     private MemberRole memberRole;
 
+    public void setId(String id) {
+        this.id = id;
+        this.memberId = id;
+    }
+
     @Override
     protected Class<Member> getEntityClass() {
         return Member.class;

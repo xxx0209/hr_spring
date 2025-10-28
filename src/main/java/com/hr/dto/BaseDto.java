@@ -1,10 +1,16 @@
 package com.hr.dto;
 
 import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 
 public abstract class BaseDto<T> {
 
     private static final ModelMapper modelMapper = new ModelMapper();
+
+    static {
+        modelMapper.getConfiguration()
+                .setMatchingStrategy(MatchingStrategies.STRICT);
+    }
 
     /** DTO -> Entity */
     public T toEntity() {

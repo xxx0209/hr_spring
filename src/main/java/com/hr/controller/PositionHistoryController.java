@@ -3,6 +3,9 @@ package com.hr.controller;
 import com.hr.dto.PositionHistoryDto;
 import com.hr.service.PositionHistoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +19,12 @@ public class PositionHistoryController {
     private final PositionHistoryService positionHistoryService;
 
     @GetMapping("list")
-    public ResponseEntity<List<PositionHistoryDto>> list() {
-        return ResponseEntity.ok(positionHistoryService.findAll());
+    public Page<PositionHistoryDto> list(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        PageRequest pageable = PageRequest.of(page, size, Sort.by("changedAt").descending());
+        return positionHistoryService.findAll(pageable);
     }
 
     @PostMapping("save")
