@@ -3,6 +3,9 @@ package com.hr.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 
 @Entity
 @Table(name = "posts")
@@ -31,10 +34,9 @@ public class Post {
     @Column(nullable = false)
     private Integer views = 0;             // posts.views (자바에서 기본 0 보장)
 
-    // DB에서 자동 채움 -> JPA에선 읽기 전용
     @Column(name = "create_date", insertable = false, updatable = false)
-    private LocalDateTime createDate;      // posts.create_date
+    private LocalDateTime createDate;
 
     @Column(name = "update_date", insertable = false, updatable = false)
-    private LocalDateTime updateDate;      // posts.update_date
+    private LocalDateTime updateDate;
 }
