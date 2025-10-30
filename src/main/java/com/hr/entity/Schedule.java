@@ -27,6 +27,9 @@ public class Schedule extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
+    @Column(length = 4000)
+    private String content;
+
     @Column(nullable = false)
     private LocalDateTime start;
 

@@ -30,6 +30,9 @@ public class ScheduleService {
 
         return schedules.stream().map(schedule -> {
             ScheduleDto dto = ScheduleDto.fromEntity(schedule, ScheduleDto.class);
+            dto.setTitle("[".concat(schedule.getCategory().getName())
+                            .concat("] ")
+                            .concat(dto.getTitle()));
             dto.setMemberId(schedule.getMember().getId());
             dto.setCategoryId(schedule.getCategory().getCategoryId());
             dto.setColor(schedule.getCategory().getColor());
@@ -59,8 +62,12 @@ public class ScheduleService {
         Schedule saved = scheduleRepository.save(schedule);
 
         ScheduleDto scheduleDto = ScheduleDto.fromEntity(saved, ScheduleDto.class);
+        assert category != null : "카테고리 아이디가 null입니다.";
+        scheduleDto.setTitle("[".concat(category.getName())
+                                .concat("] ")
+                                .concat(scheduleDto.getTitle()));
         scheduleDto.setMemberId(member.getId());
-        scheduleDto.setCategoryId(category != null ? category.getCategoryId() : null);
+        scheduleDto.setCategoryId(category.getCategoryId());
 
         return scheduleDto;
     }

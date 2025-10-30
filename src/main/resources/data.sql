@@ -18,9 +18,26 @@ INSERT INTO members (
 -- 카테고리 기본 데이터 (categories)
 -- ==========================================
 INSERT INTO categories (
-    name, color, create_id, update_id, create_date, update_date
+    active, name, color, create_id, update_id, create_date, update_date
 ) VALUES
-('회의', '#0d6efd', 'system', 'system', NOW(), NOW()),
-('출장', '#198754', 'system', 'system', NOW(), NOW()),
-('교육', '#ffc107', 'system', 'system', NOW(), NOW()),
-('휴가', '#dc3545', 'system', 'system', NOW(), NOW());
+(1, '회의', '#0d6efd', 'system', 'system', NOW(), NOW()),
+(1, '출장', '#198754', 'system', 'system', NOW(), NOW()),
+(1, '교육', '#ffc107', 'system', 'system', NOW(), NOW()),
+(1, '휴가', '#dc3545', 'system', 'system', NOW(), NOW());
+
+-- ==========================================
+-- 직급 기본 데이터 (positions)
+-- ==========================================
+INSERT INTO `positions` (
+  `active`,
+  `create_date`,
+  `update_date`,
+  `position_code`,
+  `position_name`,
+  `create_id`,
+  `description`,
+  `update_id`
+) VALUES
+(1, NOW(), NOW(), 'INTERN', '인턴', 'system', '신규입사자는 인턴부터 시작합니다.', 'system'),
+(1, NOW(), NOW(), 'STAFF', '직원', 'system', '인턴후 3개월후 정식사원이 됩니다.', 'system'),
+(1, NOW(), NOW(), 'CEO', '사장', 'system', '회사를 이끌어가는 최고 책임자 입니다.', 'system');

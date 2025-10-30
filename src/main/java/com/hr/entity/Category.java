@@ -18,4 +18,7 @@ public class Category extends BaseEntity {
 
     @Column(length = 20)
     private String color;
+
+    @Column(nullable = false)
+    private Boolean active = true;
 }
