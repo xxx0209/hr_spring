@@ -1,4 +1,3 @@
-// 📁 entity/Request.java
 package com.hr.entity;
 
 import jakarta.persistence.*;
@@ -20,14 +19,14 @@ public class Request extends BaseEntity {
     @Column(name = "request_id")
     private Long id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "member_id")
-//    private Member member;   // 작성자 (기안자)
-    @Column(name = "member_id", length =100)
+    @Column(name = "member_id", length = 100)
     private String memberId;
 
+    @Column(name = "member_name", length = 100)
+    private String memberName;
+
     @Column(name = "request_type", length = 100)
-    private String requestType; // 연차, 반차, 휴가 등
+    private String requestType;
 
     @Column(columnDefinition = "TEXT")
     private String content;
@@ -45,5 +44,12 @@ public class Request extends BaseEntity {
     private Integer price;
 
     @Column(length = 100)
-    private String status; // 진행 상태(작성중, 승인대기, 승인, 반려 등)
+    private String status;
+
+    // 결재자 정보 및 결재일시
+    @Column(name = "approver_name", length = 100)
+    private String approver;
+
+    @Column(name = "approval_date")
+    private LocalDateTime approvalDate;
 }

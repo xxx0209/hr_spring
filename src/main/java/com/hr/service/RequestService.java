@@ -1,12 +1,13 @@
-// 📁 service/RequestService.java
 package com.hr.service;
 
 import com.hr.dto.RequestDto;
 import com.hr.entity.Request;
 import com.hr.repository.RequestRepository;
+import com.hr.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -15,17 +16,25 @@ public class RequestService {
 
     private final RequestRepository requestRepository;
 
-    // 저장 (등록)
-    public Request save(RequestDto dto) {
-        return requestRepository.save(dto.toEntity());
+    // 저장 (로그인 사용자 포함)
+    public Request save(RequestDto dto, CustomUserDetails user) {
+        Request r = new Request();
+        r.setMemberId(user.getMemberId());
+        r.setMemberName(user.getName());
+        r.setRequestType(dto.getRequestType());
+        r.setContent(dto.getContent());
+        r.setPrice(dto.getPrice());
+        r.setStatus(dto.getStatus());
+        if (dto.getStartDate() != null) r.setStartDate(dto.getStartDate().atStartOfDay());
+        if (dto.getEndDate() != null) r.setEndDate(dto.getEndDate().atStartOfDay());
+        r.setDateTime(LocalDateTime.now());
+        return requestRepository.save(r);
     }
 
-    // 전체 조회
     public List<Request> findAll() {
         return requestRepository.findAll();
     }
 
-    // 특정 작성자별 조회 (현재 미사용)
     public List<Request> findByMember(String memberId) {
         return requestRepository.findAll()
                 .stream()
@@ -33,42 +42,47 @@ public class RequestService {
                 .toList();
     }
 
-    // 수정
     public Request update(Long id, RequestDto dto) {
-
         Request existing = requestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("기안을 찾을 수 없습니다."));
 
         existing.setRequestType(dto.getRequestType());
         existing.setContent(dto.getContent());
-
-        // LocalDate → LocalDateTime 변환 명확히
-        if (dto.getStartDate() != null)
-            existing.setStartDate(dto.getStartDate().atStartOfDay());
-        else
-            existing.setStartDate(null);
-
-        if (dto.getEndDate() != null)
-            existing.setEndDate(dto.getEndDate().atStartOfDay());
-        else
-            existing.setEndDate(null);
-
-        existing.setStatus(dto.getStatus() != null ? dto.getStatus() : existing.getStatus());
-        existing.setPrice(dto.getPrice() != null ? dto.getPrice() : existing.getPrice());
-
+        existing.setStatus(dto.getStatus());
+        existing.setPrice(dto.getPrice());
+        if (dto.getStartDate() != null) existing.setStartDate(dto.getStartDate().atStartOfDay());
+        if (dto.getEndDate() != null) existing.setEndDate(dto.getEndDate().atStartOfDay());
         return requestRepository.save(existing);
     }
 
-    // 삭제
     public void delete(Long id) {
         requestRepository.deleteById(id);
     }
 
-    // 상태 변경 (결재 요청 등)
     public void updateStatus(Long id, String status) {
-        Request request = requestRepository.findById(id)
+        Request r = requestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("문서를 찾을 수 없습니다."));
-        request.setStatus(status);
-        requestRepository.save(request);
+        r.setStatus(status);
+        requestRepository.save(r);
+    }
+
+    // 결재 승인 처리
+    public void approveRequest(Long id, String approverName) {
+        Request r = requestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("문서를 찾을 수 없습니다."));
+        r.setStatus("승인");
+        r.setApprover(approverName);
+        r.setApprovalDate(LocalDateTime.now());
+        requestRepository.save(r);
+    }
+
+    // 결재 반려 처리
+    public void rejectRequest(Long id, String approverName) {
+        Request r = requestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("문서를 찾을 수 없습니다."));
+        r.setStatus("반려");
+        r.setApprover(approverName);
+        r.setApprovalDate(LocalDateTime.now());
+        requestRepository.save(r);
     }
 }

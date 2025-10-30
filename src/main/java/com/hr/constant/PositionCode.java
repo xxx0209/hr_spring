@@ -2,7 +2,7 @@ package com.hr.constant;
 
 public enum PositionCode {
     INTERN("인턴"),
-    STAFF("사장"),
+    STAFF("직원"),
     ASSISTANT("대리"),
     CEO("사장");
 
