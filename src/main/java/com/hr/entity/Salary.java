@@ -1,6 +1,7 @@
 package com.hr.entity;
 
 import com.hr.constant.SalaryStatus;
+import com.hr.service.YearMonthAttributeConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,12 +27,13 @@ public class Salary {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @Column(name = "pay_date")
-    private LocalDate payDate;
-
-    @Column(name = "salary_month", nullable = false)
+    @Column(name = "salary_month")
+    @Convert(converter = YearMonthAttributeConverter.class)
     private YearMonth salaryMonth;
 
+
+    @Column(name = "pay_date")
+    private LocalDate payDate;
 
     @Column(name = "custom_base_salary", precision = 12, scale = 2)
     private BigDecimal customBaseSalary; // 개인 기준 급여 (null 가능)

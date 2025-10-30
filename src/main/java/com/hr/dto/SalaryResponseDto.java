@@ -8,6 +8,7 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 
 @Getter
@@ -19,6 +20,9 @@ public class SalaryResponseDto {
     private Integer salaryId;
     private String memberId;
     private String memberName;
+
+    @JsonFormat(pattern = "yyyy-MM")
+    private YearMonth salaryMonth;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate payDate;
