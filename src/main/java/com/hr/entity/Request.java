@@ -52,4 +52,7 @@ public class Request extends BaseEntity {
 
     @Column(name = "approval_date")
     private LocalDateTime approvalDate;
+
+    @Column(name = "comment", columnDefinition = "Text")
+    private String comment;
 }

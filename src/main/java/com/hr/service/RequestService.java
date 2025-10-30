@@ -67,22 +67,24 @@ public class RequestService {
     }
 
     // 결재 승인 처리
-    public void approveRequest(Long id, String approverName) {
+    public void approveRequest(Long id, String approverName, String comment) {
         Request r = requestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("문서를 찾을 수 없습니다."));
         r.setStatus("승인");
         r.setApprover(approverName);
         r.setApprovalDate(LocalDateTime.now());
+        r.setComment(comment);
         requestRepository.save(r);
     }
 
-    // 결재 반려 처리
-    public void rejectRequest(Long id, String approverName) {
+    public void rejectRequest(Long id, String approverName, String comment) {
         Request r = requestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("문서를 찾을 수 없습니다."));
         r.setStatus("반려");
         r.setApprover(approverName);
         r.setApprovalDate(LocalDateTime.now());
+        r.setComment(comment);
         requestRepository.save(r);
     }
+
 }

@@ -70,27 +70,33 @@ public class RequestController {
 
     // 결재 승인 (관리자 전용)
     @PatchMapping("/{id}/approve")
-    public ResponseEntity<?> approveRequest(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<?> approveRequest(@PathVariable Long id,
+                                            @RequestBody RequestDto dto,
+                                            Authentication authentication) {
         CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 
         if (!user.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
             return ResponseEntity.status(403).body("권한이 없습니다.");
         }
 
-        requestService.approveRequest(id, user.getName());
+        // comment 포함해서 호출
+        requestService.approveRequest(id, user.getName(), dto.getComment());
         return ResponseEntity.ok("결재 승인 완료");
     }
 
-    // 결재 반려 (관리자 전용)
     @PatchMapping("/{id}/reject")
-    public ResponseEntity<?> rejectRequest(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<?> rejectRequest(@PathVariable Long id,
+                                           @RequestBody RequestDto dto,
+                                           Authentication authentication) {
         CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 
         if (!user.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
             return ResponseEntity.status(403).body("권한이 없습니다.");
         }
 
-        requestService.rejectRequest(id, user.getName());
+        // comment 포함해서 호출
+        requestService.rejectRequest(id, user.getName(), dto.getComment());
         return ResponseEntity.ok("결재 반려 완료");
     }
+
 }
