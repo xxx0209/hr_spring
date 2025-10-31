@@ -13,6 +13,7 @@ public class SalaryDtoConvertor {
         dto.setSalaryId(salary.getSalaryId());
         dto.setMemberId(salary.getMember().getId());
         dto.setMemberName(salary.getMember().getName());
+        dto.setSalaryMonth(salary.getSalaryMonth()); // ✅ 추가
         dto.setPayDate(salary.getPayDate());
         dto.setCustomBaseSalary(salary.getCustomBaseSalary());
         dto.setHoursBaseSalary(salary.getHoursBaseSalary());
@@ -25,7 +26,7 @@ public class SalaryDtoConvertor {
                 .map(d -> {
                     TaxDeductionDetailDto td = new TaxDeductionDetailDto();
                     td.setTypeCode(d.getDeductionType().getTypeCode());
-                    td.setTypeName(d.getDeductionType().getName()); // ✅ 추가 확인
+                    td.setTypeName(d.getDeductionType().getName());
                     td.setRate(d.getRate());
                     td.setAmount(d.getAmount());
                     return td;
@@ -34,5 +35,4 @@ public class SalaryDtoConvertor {
         dto.setDeductions(deductionDtos);
         return dto;
     }
-
 }

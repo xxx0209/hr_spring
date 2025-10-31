@@ -17,21 +17,23 @@ public interface SalaryRepository extends JpaRepository<Salary, Integer> {
     boolean existsByMemberAndSalaryMonth(Member member, YearMonth salaryMonth);
     boolean existsByMemberAndPayDate(Member member, LocalDate payDate);
 
-    // 🔹 직원 급여 이력 (비페이징)
+    // 🔹 직원 급여 이력
     List<Salary> findByMember_IdOrderByPayDateDesc(String memberId);
-    // 🔹 상태별 급여 조회 (비페이징)
+
+    // 🔹 상태별 급여 조회
     List<Salary> findByStatus(SalaryStatus status);
-    List<Salary> findByPayDateBetween(LocalDate start, LocalDate end);
 
-    List<Salary> findByMember_IdAndPayDateBetween(String memberId, LocalDate start, LocalDate end);
-    List<Salary> findByMember_IdAndPayDateBetweenAndStatus(String memberId, LocalDate start, LocalDate end, SalaryStatus status);
+    // 조건별 조회
+    List<Salary> findByMember_IdAndSalaryMonthAndStatus(String memberId, YearMonth salaryMonth, SalaryStatus status);
+    List<Salary> findByMember_IdAndStatusOrderByPayDateDesc(String memberId, SalaryStatus status);
+    List<Salary> findBySalaryMonthAndStatus(YearMonth salaryMonth, SalaryStatus status);
 
 
-    // 🔹 월별 급여 조회 - 직원 (페이징)
+    // 페이징용 (선택)
     Page<Salary> findByMember_IdAndSalaryMonthAndStatus(String memberId, YearMonth salaryMonth, SalaryStatus status, Pageable pageable);
-    // 🔹 월별 급여 조회 - 관리자 (페이징)
     Page<Salary> findBySalaryMonth(YearMonth salaryMonth, Pageable pageable);
-
 }
+
+
 
 
