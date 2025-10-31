@@ -12,6 +12,8 @@ INSERT INTO members (
 ('user2', '김철수', '{noop}1234', 'ROLE_USER', '남성', '20250103', 'kim@example.com', '경기도 성남시',
  NULL, 'system', 'system', NOW(), NOW()),
 ('user3', '이영희', '{noop}1234', 'ROLE_USER', '여성', '20250104', 'lee@example.com', '부산광역시 해운대구',
+ NULL, 'system', 'system', NOW(), NOW()),
+('admin2', '박관리', '{noop}1234', 'ROLE_ADMIN', '여성', '20250105', 'admin2@example.com', '서울특별시 마포구',
  NULL, 'system', 'system', NOW(), NOW());
 
 -- ==========================================

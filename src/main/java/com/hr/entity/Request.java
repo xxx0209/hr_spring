@@ -46,13 +46,15 @@ public class Request extends BaseEntity {
     @Column(length = 100)
     private String status;
 
-    // 결재자 정보 및 결재일시
-    @Column(name = "approver_name", length = 100)
-    private String approver;
-
     @Column(name = "approval_date")
     private LocalDateTime approvalDate;
 
     @Column(name = "comment", columnDefinition = "Text")
     private String comment;
+
+    @Column(name = "approver_id")
+    private String approverId;
+
+    @Column(name = "approver_name")
+    private String approverName;
 }

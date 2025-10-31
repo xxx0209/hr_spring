@@ -22,6 +22,9 @@ public class RequestDto extends BaseDto<Request> {
     private String status;
     private Integer price;
     private String comment;
+    private String approverId;
+    private String approverName;
+
 
     // LocalDate → LocalDateTime(자정) 변환 포함
     public Request toEntity(String loginMemberId, String loginMemberName) {
