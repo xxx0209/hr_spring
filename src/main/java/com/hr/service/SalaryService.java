@@ -213,6 +213,7 @@ public class SalaryService {
                 .map(SalaryDtoConvertor::toResponseDto)
                 .collect(Collectors.toList());
     }
+
     // 급여 삭제
     @Transactional
     public void deleteSalary(Integer salaryId, MemberDto requester) {
