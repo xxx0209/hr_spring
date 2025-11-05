@@ -140,9 +140,10 @@ public class RequestController {
         String memberId = user.getMemberId();
 
         Map<String, Object> result = new HashMap<>();
-        result.put("requests", requestService.findRecentApprovalRequests(memberId)); // 나에게 결재요청된 문서
-        result.put("processed", requestService.findRecentApprovedDocs(memberId));    // 내가 결재한 문서
-        result.put("myRequests", requestService.findRecentMyRequests(memberId));     // 내가 기안한 문서
+        // recent 제거 → 전체 데이터 반환하도록 변경
+        result.put("requests", requestService.findApprovalRequests(memberId));
+        result.put("processed", requestService.findApprovedDocs(memberId));
+        result.put("myRequests", requestService.findMyRequests(memberId));
 
         return ResponseEntity.ok(result);
     }
