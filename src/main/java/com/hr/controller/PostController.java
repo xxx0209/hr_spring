@@ -1,57 +1,134 @@
 package com.hr.controller;
 
+import com.hr.entity.Comment;
 import com.hr.entity.Post;
+import com.hr.service.LikeService;
 import com.hr.service.PostService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000") // React 개발 서버
 public class PostController {
 
     private final PostService postService;
 
-    // 목록: 검색(q) + 카테고리(category) + 정렬(sort=key,dir) + 페이지(page, size)
-    @GetMapping
-    public Page<Post> list(
-            @RequestParam(defaultValue = "ALL") String category,
-            @RequestParam(required = false) String q,
-            @RequestParam(defaultValue = "1") int page,       // 프론트 1부터 -> 0으로 보정
-            @RequestParam(defaultValue = "5") int size,
-            @RequestParam(defaultValue = "createDate,desc") String sort
-    ) {
-        String[] sp = sort.split(",");
-        String sortKey = sp.length > 0 ? sp[0] : "createDate";
-        Sort.Direction dir = (sp.length > 1 && "asc".equalsIgnoreCase(sp[1])) ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(Math.max(0, page - 1), size, Sort.by(dir, sortKey));
-        return postService.list(q, category, pageable);
-    }
 
-    // 상세(+조회수 증가 addView=true 시)
+    /** ✅ 게시글 상세 조회 (조회수 증가 여부 선택 가능) */
     @GetMapping("/{id}")
-    public Post get(@PathVariable Long id, @RequestParam(defaultValue = "true") boolean addView) {
-        if (addView) return postService.increaseViews(id);
-        return postService.get(id).orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+    public ResponseEntity<?> getPost(@PathVariable Long id,
+                                     @RequestParam(required = false, defaultValue = "true") boolean view,
+                                     Principal principal) {
+        // 조회수 증가 여부를 파라미터로 전달
+        Post post = postService.getAndIncreaseViews(id, view);
+
+        boolean liked = false;
+        if (principal != null) {
+            liked = postService.hasUserLiked(id, principal.getName());
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("post", post);
+        response.put("liked", liked);
+
+        return ResponseEntity.ok(response);
     }
 
-    // 생성
+    /** ✅ 게시글 목록 조회 */
+    @GetMapping
+    public ResponseEntity<?> list(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(
+                postService.list(q, category, PageRequest.of(page, size))
+        );
+    }
+
+    /** ✅ 게시글 좋아요 (1인 1회 토글 방식) */
+    @PostMapping("/{id}/like")
+    public ResponseEntity<?> like(@PathVariable Long id, Principal principal) {
+        String memberId = (principal != null) ? principal.getName() : "익명";
+        boolean liked = postService.toggleLike(id, memberId);
+        return ResponseEntity.ok(Map.of("liked", liked));
+    }
+
+    /** ✅ 댓글 등록 */
+    @PostMapping("/{id}/comments")
+    public ResponseEntity<?> addComment(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload,
+            Principal principal  // Principal 객체를 추가
+    ) {
+        try {
+            // 로그인된 사용자가 있다면, 그 사용자의 이름을 가져옴
+            String writer = (principal != null) ? principal.getName() : "익명";
+
+            String content = payload.get("content") != null ? payload.get("content").toString().trim() : "";
+
+            if (content.isEmpty()) throw new RuntimeException("댓글 내용이 비어있습니다.");
+
+            Comment saved = postService.addComment(id, writer, content);
+            return ResponseEntity.ok(saved);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /** ✅ 댓글 목록 조회 */
+    @GetMapping("/{id}/comments")
+    public ResponseEntity<List<Comment>> getComments(@PathVariable Long id) {
+        List<Comment> comments = postService.getCommentsByPostId(id);
+        return ResponseEntity.ok(comments);
+    }
+
+    /** ✅ 게시글 등록 */
     @PostMapping
-    public Post create(@RequestBody Post post) {
-        return postService.create(post);
+    public ResponseEntity<?> createPost(@RequestBody Post post, Principal principal) {
+        try {
+            String writerName = (principal != null) ? principal.getName() : post.getMemberName();
+            if (writerName == null || writerName.trim().isEmpty()) writerName = "익명";
+            post.setMemberName(writerName);
+            Post saved = postService.save(post);
+            return ResponseEntity.ok(saved);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+    @GetMapping("/{id}/like-status")
+    public ResponseEntity<?> checkLikeStatus(@PathVariable Long id, Principal principal) {
+        String memberId = (principal != null) ? principal.getName() : "익명";
+        boolean liked = postService.hasUserLiked(id, memberId);
+        return ResponseEntity.ok(Map.of("liked", liked));
+    }
+    @Autowired
+    private LikeService likeService;  // LikeService 사용
+
+    // 게시글의 좋아요 수 조회 API
+    @GetMapping("/getLikesCount")
+    public int getLikesCount(@RequestParam("postId") Long postId) {
+        return likeService.getLikesCount(postId);  // LikeService 호출
     }
 
-    // 수정
-    @PutMapping("/{id}")
-    public Post update(@PathVariable Long id, @RequestBody Post post) {
-        return postService.update(id, post);
+    /** ✅ 좋아요 누른 사용자 목록 조회 */
+    @GetMapping("/{id}/likes")
+    public ResponseEntity<List<String>> getLikes(@PathVariable Long id) {
+        List<String> usersWhoLiked = likeService.getUsersWhoLikedPost(id);
+        return ResponseEntity.ok(usersWhoLiked);
     }
 
-    // 삭제
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        postService.delete(id);
-    }
 }
