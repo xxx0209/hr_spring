@@ -1,9 +1,6 @@
 package com.hr.config;
 
-import com.hr.constant.BaseSalaryType;
-import com.hr.entity.BaseSalary;
 import com.hr.entity.DeductionType;
-import com.hr.repository.BaseSalaryRepository;
 import com.hr.repository.DeductionTypeRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -16,25 +13,10 @@ import java.math.BigDecimal;
 public class DataInitializer {
 
     private final DeductionTypeRepository deductionTypeRepository;
-    private final BaseSalaryRepository baseSalaryRepository;
 
     @PostConstruct
     public void initData() {
         initDeductionTypes();
-        initPositionBaseSalaries();
-    }
-
-    private void initPositionBaseSalaries() {
-        if(baseSalaryRepository.count() == 0){
-            baseSalaryRepository.save(new BaseSalary(
-                    BaseSalaryType.POSITION, "인턴", new BigDecimal("2300000"), new BigDecimal("10000")));
-            baseSalaryRepository.save(new BaseSalary(
-                    BaseSalaryType.POSITION, "직원", new BigDecimal("2600000"), new BigDecimal("12000")));
-            baseSalaryRepository.save(new BaseSalary(
-                    BaseSalaryType.POSITION, "대리", new BigDecimal("4000000"), new BigDecimal("14000")));
-            baseSalaryRepository.save(new BaseSalary(
-                    BaseSalaryType.POSITION, "사장", new BigDecimal("6000000"), new BigDecimal("20000")));
-        }
     }
 
     public void initDeductionTypes() {
