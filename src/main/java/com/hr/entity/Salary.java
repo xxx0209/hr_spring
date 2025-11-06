@@ -1,6 +1,7 @@
 package com.hr.entity;
 
 import com.hr.constant.SalaryStatus;
+import com.hr.constant.SalaryType;
 import com.hr.service.YearMonthAttributeConverter;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,10 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
 @Table(name = "salaries")
+@Getter @Setter @NoArgsConstructor
 public class Salary {
 
     @Id
@@ -23,20 +22,28 @@ public class Salary {
     @Column(name = "salary_id")
     private Integer salaryId;
 
-    @ManyToOne
-    @JoinColumn(name = "member_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @Column(name = "salary_month")
+    @Column(name = "salary_month", nullable = false)
     @Convert(converter = YearMonthAttributeConverter.class)
     private YearMonth salaryMonth;
-
 
     @Column(name = "pay_date")
     private LocalDate payDate;
 
-    @Column(name = "custom_base_salary", precision = 12, scale = 2)
-    private BigDecimal customBaseSalary; // 개인 기준 급여 (null 가능)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "salary_type", nullable = false)
+    private SalaryType salaryType; // POSITION 또는 MEMBER
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_salary_id", nullable = true)
+    private MemberSalary memberSalary; // 개인 기준 급여
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "position_salary_id", nullable = true)
+    private PositionSalary positionSalary; // 직급 기준 급여
 
     @Column(name = "hours_base_salary", precision = 12, scale = 2)
     private BigDecimal hoursBaseSalary; // 시급 × 1.5 × 시간
@@ -51,10 +58,9 @@ public class Salary {
     private BigDecimal netPay;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
     private SalaryStatus status;
 
     @OneToMany(mappedBy = "salary", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TaxDeduction> taxDeductions = new ArrayList<>();;
-
-
+    private List<TaxDeduction> taxDeductions = new ArrayList<>();
 }
