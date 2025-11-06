@@ -1,12 +1,12 @@
 package com.hr.constant;
 
-public enum BaseSalaryType {
+public enum SalaryType {
     POSITION("직급"), // 직급
     MEMBER("개인"); // 개인
 
     private final String label;
 
-    BaseSalaryType(String label) {
+    SalaryType(String label) {
         this.label = label;
     }
 
