@@ -1,22 +1,13 @@
 package com.hr.controller;
 
-import com.hr.constant.MemberRole;
-import com.hr.constant.SalaryStatus;
-import com.hr.dto.MemberDto;
-import com.hr.dto.SalaryRequestDto;
 import com.hr.dto.SalaryResponseDto;
 import com.hr.security.CustomUserDetails;
-import com.hr.service.MemberService;
 import com.hr.service.SalaryService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
-import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -32,11 +23,12 @@ public class SalaryController {
         return ResponseEntity.ok(salaryService.create(dto));
     }
 
-   //  급여 수정
+    //  급여 수정
     @PutMapping("/{salaryId}")
-    public ResponseEntity<SalaryResponseDto> update(@PathVariable Integer salaryId,
-                                                    @RequestBody SalaryResponseDto dto) {
-        return ResponseEntity.ok(salaryService.update(salaryId, dto));
+    public ResponseEntity<SalaryResponseDto> updateSalary(@PathVariable Integer salaryId,
+                                                          @RequestBody SalaryResponseDto dto) {
+        SalaryResponseDto updatedSalary = salaryService.updateAndRecalculate(salaryId, dto);
+        return ResponseEntity.ok(updatedSalary);
     }
 
     // 급여 승인
@@ -94,4 +86,5 @@ public class SalaryController {
         String memberId = userDetails.getMemberId();
         return ResponseEntity.ok(salaryService.findMySalaryDetail(memberId, salaryId));
     }
+
 }

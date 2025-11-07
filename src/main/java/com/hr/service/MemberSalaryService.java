@@ -1,12 +1,10 @@
 package com.hr.service;
 
 import com.hr.dto.MemberSalaryDto;
-import com.hr.entity.Member;
-import com.hr.entity.MemberSalary;
-import com.hr.entity.Position;
-import com.hr.entity.PositionSalary;
+import com.hr.entity.*;
 import com.hr.repository.MemberRepository;
 import com.hr.repository.MemberSalaryRepository;
+import com.hr.repository.SalaryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +17,7 @@ public class MemberSalaryService {
 
    private final MemberSalaryRepository memberSalaryRepository;
    private final MemberRepository memberRepository;
+   private final SalaryRepository salaryRepository;
 
    // 맴버 기준급 등록
     public void save(MemberSalaryDto dto){
@@ -56,6 +55,16 @@ public class MemberSalaryService {
     public void delete(Long id) {
         MemberSalary memberSalary = memberSalaryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("member not found"));
+
+        // MemberSalary를 참조하는 Salary 조회
+        List<Salary> salaries = salaryRepository.findByMemberSalary(memberSalary);
+
+        // Salary에서 참조 해제
+        for (Salary salary : salaries) {
+            salary.setMemberSalary(null);
+        }
+
+        // MemberSalary 삭제
         memberSalaryRepository.delete(memberSalary);
     }
 
