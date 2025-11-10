@@ -35,7 +35,6 @@ public class SalaryService {
     // 급여 생성 + 공제 계산
     // ======================
     public SalaryResponseDto create(SalaryResponseDto dto) {
-
         Member member = memberRepository.findById(dto.getMemberId())
                 .orElseThrow(() -> new RuntimeException("Member not found"));
 
@@ -52,7 +51,6 @@ public class SalaryService {
         salary.setPayDate(LocalDate.of(salaryMonth.getYear(), salaryMonth.getMonth(), 20));
         salary.setStatus(SalaryStatus.DRAFT);
 
-        // 급여 기준 조회
         BigDecimal baseSalary = BigDecimal.ZERO;
         BigDecimal hourlyRate = BigDecimal.ZERO;
 
@@ -67,20 +65,24 @@ public class SalaryService {
             if (member.getPosition() == null)
                 throw new RuntimeException("개인급여가 없고, 회원의 직급이 존재하지 않습니다.");
 
-            List<PositionSalary> positionSalaries = positionSalaryRepository
-                    .findByPosition_PositionIdAndActiveTrue(member.getPosition().getPositionId());
+            PositionSalary ps = null;
+            if (dto.getPositionSalaryId() != null) {
+                ps = positionSalaryRepository.findById(dto.getPositionSalaryId())
+                        .orElseThrow(() -> new RuntimeException("선택된 직급 급여를 찾을 수 없습니다."));
+            } else {
+                List<PositionSalary> positionSalaries = positionSalaryRepository
+                        .findByPosition_PositionIdAndActiveTrue(member.getPosition().getPositionId());
+                if (positionSalaries.isEmpty())
+                    throw new RuntimeException("개인급여가 없고, 직급에 등록된 급여가 없습니다.");
+                ps = positionSalaries.get(0);
+            }
 
-            if (positionSalaries.isEmpty())
-                throw new RuntimeException("개인급여가 없고, 직급에 등록된 급여가 없습니다.");
-
-            PositionSalary ps = positionSalaries.get(0);
             salary.setSalaryType(SalaryType.POSITION);
             salary.setPositionSalary(ps);
-            baseSalary = ps.getBaseSalary() != null ? ps.getBaseSalary() : BigDecimal.ZERO;
-            hourlyRate = ps.getHourlyRate() != null ? ps.getHourlyRate() : BigDecimal.ZERO;
-
             salary.setTitle(ps.getTitle());
             salary.setActive(ps.getActive());
+            baseSalary = ps.getBaseSalary() != null ? ps.getBaseSalary() : BigDecimal.ZERO;
+            hourlyRate = ps.getHourlyRate() != null ? ps.getHourlyRate() : BigDecimal.ZERO;
         }
 
         salary.setBaseSalary(baseSalary);
@@ -134,9 +136,19 @@ public class SalaryService {
             salary.setPayDate(LocalDate.of(salaryMonth.getYear(), salaryMonth.getMonth(), 20));
         }
 
-        if (dto.getTitle() != null) salary.setTitle(dto.getTitle());
-        if (dto.getBaseSalary() != null) salary.setBaseSalary(dto.getBaseSalary());
-        if (dto.getHourlyRate() != null) salary.setHourlyRate(dto.getHourlyRate());
+        if (dto.getPositionSalaryId() != null) {
+            PositionSalary ps = positionSalaryRepository.findById(dto.getPositionSalaryId())
+                    .orElseThrow(() -> new RuntimeException("선택된 직급 급여를 찾을 수 없습니다."));
+            salary.setPositionSalary(ps);
+            salary.setTitle(ps.getTitle());
+            salary.setBaseSalary(ps.getBaseSalary());
+            salary.setHourlyRate(ps.getHourlyRate());
+            salary.setActive(ps.getActive());
+        } else {
+            if (dto.getTitle() != null) salary.setTitle(dto.getTitle());
+            if (dto.getBaseSalary() != null) salary.setBaseSalary(dto.getBaseSalary());
+            if (dto.getHourlyRate() != null) salary.setHourlyRate(dto.getHourlyRate());
+        }
 
         BigDecimal hoursBaseSalary = salary.getHoursBaseSalary() != null ? salary.getHoursBaseSalary() : BigDecimal.ZERO;
         BigDecimal grossPay = salary.getBaseSalary().add(hoursBaseSalary);
@@ -177,6 +189,48 @@ public class SalaryService {
         salary.setPayDate(LocalDate.of(salary.getSalaryMonth().getYear(), salary.getSalaryMonth().getMonth(), 20));
         salaryRepository.save(salary);
         return convertResponse(salary);
+    }
+
+    // ======================
+    // DTO 변환
+    // ======================
+    private SalaryResponseDto convertResponse(Salary s) {
+        SalaryResponseDto dto = new SalaryResponseDto();
+        dto.setSalaryId(s.getSalaryId());
+        dto.setMemberId(s.getMember().getId());
+        dto.setMemberName(s.getMember().getName());
+        dto.setSalaryMonth(s.getSalaryMonth().toString());
+        dto.setPayDate(s.getPayDate());
+        dto.setSalaryType(s.getSalaryType());
+        dto.setStatus(s.getStatus());
+        dto.setGrossPay(s.getGrossPay());
+        dto.setTotalDeduction(s.getTotalDeduction());
+        dto.setHoursBaseSalary(s.getHoursBaseSalary());
+        dto.setNetPay(s.getNetPay());
+        dto.setBaseSalary(s.getBaseSalary());
+        dto.setHourlyRate(s.getHourlyRate());
+        dto.setTitle(s.getTitle());
+        dto.setActive(s.getActive());
+
+        if (s.getSalaryType() == SalaryType.POSITION && s.getPositionSalary() != null) {
+            dto.setTitle(s.getPositionSalary().getTitle());
+            dto.setPositionSalaryId(s.getPositionSalary().getId());
+            dto.setPositionId(s.getPositionSalary().getPosition().getPositionId());
+        }
+
+        if (s.getTaxDeductions() != null && !s.getTaxDeductions().isEmpty()) {
+            List<TaxDeductionDetailDto> deductionList = s.getTaxDeductions().stream().map(td -> {
+                TaxDeductionDetailDto detail = new TaxDeductionDetailDto();
+                detail.setTypeCode(td.getDeductionType().getTypeCode());
+                detail.setTypeName(td.getDeductionType().getName());
+                detail.setRate(td.getRate());
+                detail.setAmount(td.getAmount());
+                return detail;
+            }).toList();
+            dto.setDeductions(deductionList);
+        }
+
+        return dto;
     }
 
     // ======================
@@ -248,49 +302,5 @@ public class SalaryService {
             throw new RuntimeException("지급 완료된 급여는 삭제할 수 없습니다.");
         }
         salaryRepository.delete(salary);
-    }
-
-    // ======================
-    // DTO 변환
-    // ======================
-    private SalaryResponseDto convertResponse(Salary s) {
-        SalaryResponseDto dto = new SalaryResponseDto();
-        dto.setSalaryId(s.getSalaryId());
-        dto.setMemberId(s.getMember().getId());
-        dto.setMemberName(s.getMember().getName());
-        dto.setSalaryMonth(s.getSalaryMonth().toString());
-        dto.setPayDate(s.getPayDate());
-        dto.setSalaryType(s.getSalaryType());
-        dto.setStatus(s.getStatus());
-        dto.setGrossPay(s.getGrossPay());
-        dto.setTotalDeduction(s.getTotalDeduction());
-        dto.setHoursBaseSalary(s.getHoursBaseSalary());
-        dto.setNetPay(s.getNetPay());
-        dto.setBaseSalary(s.getBaseSalary());
-        dto.setHourlyRate(s.getHourlyRate());
-        dto.setTitle(s.getTitle());
-        dto.setActive(s.getActive());
-
-        // POSITION인 경우 positionSalary의 title을 DTO에 넣어주기
-        if (s.getSalaryType() == SalaryType.POSITION && s.getPositionSalary() != null) {
-            dto.setTitle(s.getPositionSalary().getTitle());
-        } else {
-            dto.setTitle(s.getTitle()); // MEMBER 타입은 기존 title 사용
-        }
-
-
-        if (s.getTaxDeductions() != null && !s.getTaxDeductions().isEmpty()) {
-            List<TaxDeductionDetailDto> deductionList = s.getTaxDeductions().stream().map(td -> {
-                TaxDeductionDetailDto detail = new TaxDeductionDetailDto();
-                detail.setTypeCode(td.getDeductionType().getTypeCode());
-                detail.setTypeName(td.getDeductionType().getName());
-                detail.setRate(td.getRate());
-                detail.setAmount(td.getAmount());
-                return detail;
-            }).toList();
-            dto.setDeductions(deductionList);
-        }
-
-        return dto;
     }
 }
