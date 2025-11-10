@@ -13,4 +13,5 @@ public interface PositionRepository extends JpaRepository<Position, Long> {
     Optional<Position> findByPositionCode(String positionCode);
     //활성화상태 목록 조회
     Page<Position> findAllByActiveTrue(Pageable pageable);
+
 }

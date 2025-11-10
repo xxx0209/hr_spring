@@ -1,6 +1,7 @@
 package com.hr.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.hr.constant.SalaryType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -20,8 +21,9 @@ public class SalaryRequestDto {
     @JsonFormat(pattern = "yyyy-MM")
     private YearMonth salaryMonth; // 급여 대상 월만 받음
 
-//    @JsonFormat(pattern = "yyyy-MM-dd")
-//    private LocalDate payDate;
     private BigDecimal overtimeHours; // 초과근무 시간
     private List<TaxDeductionDto> deductions; // 공제 항목 선택
+
+    private SalaryType salaryType; // ✅ 급여 기준 추가
+
 }

@@ -1,6 +1,5 @@
 package com.hr.dto;
 
-import com.hr.constant.BaseSalaryType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -10,10 +9,13 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @ToString
-public class BaseSalaryDto {
+public class PositionSalaryDto {
 
-    private BaseSalaryType type;             // "POSITION" 또는 "MEMBER"
-    private String referenceId;      // 직급명 또는 memberId
+    private Long id; // id
+    private Long positionId; // positionId
+    private String positionName;
+    private String title;
     private BigDecimal baseSalary;
     private BigDecimal hourlyRate;
+    private Boolean active = true;
 }
