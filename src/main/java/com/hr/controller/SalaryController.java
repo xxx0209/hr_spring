@@ -51,8 +51,13 @@ public class SalaryController {
 
     // 승인한 급여 조회
     @GetMapping("/completed")
-    public ResponseEntity<List<SalaryResponseDto>> getCompletedSalaries() {
-        return ResponseEntity.ok(salaryService.findCompletedSalaries());
+    public ResponseEntity<List<SalaryResponseDto>> getCompletedSalaries(
+            @RequestParam(required = false) String memberId,
+            @RequestParam(required = false) String salaryMonth // YYYY-MM
+    ) {
+        return ResponseEntity.ok(
+                salaryService.findCompletedSalariesFiltered(memberId, salaryMonth)
+        );
     }
 
     /**

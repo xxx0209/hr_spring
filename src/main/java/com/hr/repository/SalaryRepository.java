@@ -24,4 +24,11 @@ public interface SalaryRepository extends JpaRepository<Salary, Integer> {
     // 특정 급여 상세 조회
     Optional<Salary> findBySalaryIdAndMemberId(Integer salaryId, String memberId);
     List<Salary> findByMemberSalary(MemberSalary memberSalary);
+
+    List<Salary> findByStatusAndMember_IdOrderByPayDateDesc(SalaryStatus status, String memberId);
+
+    List<Salary> findByStatusAndSalaryMonthOrderByPayDateDesc(SalaryStatus status, YearMonth salaryMonth);
+
+    List<Salary> findByStatusAndMember_IdAndSalaryMonthOrderByPayDateDesc(SalaryStatus status, String memberId, YearMonth salaryMonth);
+
 }

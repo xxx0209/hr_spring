@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -254,9 +255,32 @@ public class SalaryService {
     }
 
     // 승인된 급여 조회
-    public List<SalaryResponseDto> findCompletedSalaries() {
-        return salaryRepository.findByStatusOrderByPayDateDesc(SalaryStatus.COMPLETED)
-                .stream()
+    public List<SalaryResponseDto> findCompletedSalariesFiltered(String memberId, String salaryMonthStr) {
+        Optional<String> optMemberId = Optional.ofNullable(memberId).filter(s -> !s.isBlank());
+        Optional<YearMonth> optMonth = Optional.empty();
+        if (salaryMonthStr != null && !salaryMonthStr.isBlank()) {
+            optMonth = Optional.of(YearMonth.parse(salaryMonthStr));
+        }
+
+        List<Salary> salaries;
+
+        if (optMemberId.isPresent() && optMonth.isPresent()) {
+            salaries = salaryRepository.findByStatusAndMember_IdAndSalaryMonthOrderByPayDateDesc(
+                    SalaryStatus.COMPLETED, optMemberId.get(), optMonth.get()
+            );
+        } else if (optMemberId.isPresent()) {
+            salaries = salaryRepository.findByStatusAndMember_IdOrderByPayDateDesc(
+                    SalaryStatus.COMPLETED, optMemberId.get()
+            );
+        } else if (optMonth.isPresent()) {
+            salaries = salaryRepository.findByStatusAndSalaryMonthOrderByPayDateDesc(
+                    SalaryStatus.COMPLETED, optMonth.get()
+            );
+        } else {
+            salaries = salaryRepository.findByStatusOrderByPayDateDesc(SalaryStatus.COMPLETED);
+        }
+
+        return salaries.stream()
                 .map(this::convertResponse)
                 .collect(Collectors.toList());
     }
