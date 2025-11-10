@@ -3,19 +3,26 @@ package com.hr.controller;
 import com.hr.config.IncludeEnums;
 import com.hr.constant.Gender;
 import com.hr.dto.MemberDto;
+import com.hr.dto.MemberUpdateDto;
 import com.hr.dto.SimpleMemberDto;
 import com.hr.entity.Member;
+import com.hr.security.CustomUserDetails;
 import com.hr.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -62,6 +69,34 @@ public class MemberController {
         List<SimpleMemberDto> ttt = memberService.findAll();
 
         return ttt;
+    }
+
+    @GetMapping("info")
+    public MemberUpdateDto getMembers(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        String memberId = customUserDetails.getMemberId();
+
+        return memberService.getMember(memberId);
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<?> updateMember(
+            @Valid @ModelAttribute MemberUpdateDto memberUpdateDto,
+            BindingResult bindingResult
+    ) throws IOException {
+
+        if(bindingResult.hasErrors()) { // 유효성 검사에 문제가 있음.
+            // 에러 메시지들을 Map이나 List로 추출
+            Map<String, String> errors = new HashMap<>();
+
+            bindingResult.getFieldErrors().forEach(fieldError -> {
+                errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+            });
+
+            // 에러 메시지를 담아서 400 Bad Request 반환
+            return ResponseEntity.badRequest().body(errors);
+        }
+        Member updated = memberService.updateMember(memberUpdateDto);
+        return ResponseEntity.ok(updated);
     }
 
 }
