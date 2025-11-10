@@ -143,5 +143,38 @@ public class PostService {
         return post;
     }
 
+    // 게시글 수정
+    public Post updatePost(Long id, Post updatedPost) {
+        Post existing = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+        existing.setTitle(updatedPost.getTitle());
+        existing.setContent(updatedPost.getContent());
+        return postRepository.save(existing);
+    }
+
+    // 게시글 삭제
+    public void deletePost(Long id) {
+        if (!postRepository.existsById(id)) {
+            throw new RuntimeException("게시글이 존재하지 않습니다.");
+        }
+        postRepository.deleteById(id);
+    }
+
+    // ✅ 댓글 수정 기능
+    public Comment updateComment(Long commentId, String newContent) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
+        comment.setContent(newContent);
+        return commentRepository.save(comment); // DB에 UPDATE 실행
+    }
+
+    // ✅ 댓글 삭제 서비스 메서드
+    @Transactional
+    public void deleteComment(Long commentId) {
+        if (!commentRepository.existsById(commentId)) {
+            throw new RuntimeException("댓글이 존재하지 않습니다.");
+        }
+        commentRepository.deleteById(commentId);
+    }
 
 }
