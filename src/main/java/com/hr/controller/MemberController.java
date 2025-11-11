@@ -1,9 +1,7 @@
 package com.hr.controller;
 
-import com.hr.config.IncludeEnums;
-import com.hr.constant.Gender;
-import com.hr.dto.MemberDto;
-import com.hr.dto.MemberUpdateDto;
+import com.hr.dto.member.MemberDto;
+import com.hr.dto.member.MemberUpdateDto;
 import com.hr.dto.SimpleMemberDto;
 import com.hr.entity.Member;
 import com.hr.security.CustomUserDetails;
@@ -13,16 +11,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @RestController
