@@ -21,7 +21,6 @@ public class SalaryResponseDto {
     private String memberId;            // Member 엔티티의 ID (String 타입으로 유지)
     private String memberName;          // 멤버 이름
     private Long positionId;        // 직급명 (POSITION 기준일 경우)
-    private Long positionSalaryId;  // 선택한 직급 급여 ID
 
     @JsonFormat(pattern = "yyyy-MM")
     private String salaryMonth;      // 급여 기준 월
