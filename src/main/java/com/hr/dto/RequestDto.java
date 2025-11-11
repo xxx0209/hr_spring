@@ -1,5 +1,6 @@
 package com.hr.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.hr.entity.Request;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,8 +17,11 @@ public class RequestDto extends BaseDto<Request> {
     private String memberName;
     private String requestType;
     private String content;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime startDate;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime endDate;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dateTime;
     private String status;
     private Integer price;
@@ -34,8 +38,8 @@ public class RequestDto extends BaseDto<Request> {
         r.setMemberName(loginMemberName);
         r.setRequestType(requestType);
         r.setContent(content);
-        r.setStartDate(startDate != null ? startDate.atStartOfDay() : null);
-        r.setEndDate(endDate != null ? endDate.atStartOfDay() : null);
+        r.setStartDate(startDate != null ? startDate : null);
+        r.setEndDate(endDate != null ? endDate : null);
         r.setDateTime(LocalDateTime.now());
         r.setStatus(status != null ? status : "작성중");
         r.setPrice(price);
@@ -56,8 +60,8 @@ public class RequestDto extends BaseDto<Request> {
         dto.setMemberName(request.getMemberName());
         dto.setRequestType(request.getRequestType());
         dto.setContent(request.getContent());
-        dto.setStartDate(request.getStartDate() != null ? request.getStartDate().toLocalDate() : null);
-        dto.setEndDate(request.getEndDate() != null ? request.getEndDate().toLocalDate() : null);
+        dto.setStartDate(request.getStartDate() != null ? request.getStartDate() : null);
+        dto.setEndDate(request.getEndDate() != null ? request.getEndDate() : null);
         dto.setDateTime(request.getDateTime());
         dto.setStatus(request.getStatus());
         dto.setPrice(request.getPrice());

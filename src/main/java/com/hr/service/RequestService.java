@@ -30,8 +30,8 @@ public class RequestService {
         r.setContent(dto.getContent());
         r.setPrice(dto.getPrice());
         r.setStatus(dto.getStatus() != null ? dto.getStatus() : "결재요청");
-        if (dto.getStartDate() != null) r.setStartDate(dto.getStartDate().atStartOfDay());
-        if (dto.getEndDate() != null) r.setEndDate(dto.getEndDate().atStartOfDay());
+        if (dto.getStartDate() != null) r.setStartDate(dto.getStartDate());
+        if (dto.getEndDate() != null) r.setEndDate(dto.getEndDate());
         r.setDateTime(LocalDateTime.now());
         return requestRepository.save(r);
     }
@@ -58,8 +58,8 @@ public class RequestService {
         existing.setPrice(dto.getPrice());
         existing.setApproverId(dto.getApproverId());
         existing.setApproverName(dto.getApproverName());
-        if (dto.getStartDate() != null) existing.setStartDate(dto.getStartDate().atStartOfDay());
-        if (dto.getEndDate() != null) existing.setEndDate(dto.getEndDate().atStartOfDay());
+        if (dto.getStartDate() != null) existing.setStartDate(dto.getStartDate());
+        if (dto.getEndDate() != null) existing.setEndDate(dto.getEndDate());
         return requestRepository.save(existing);
     }
 
