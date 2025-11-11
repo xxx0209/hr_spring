@@ -1,11 +1,12 @@
 package com.hr.service;
 
 import com.hr.dto.*;
+import com.hr.dto.member.MemberDto;
+import com.hr.dto.member.MemberUpdateDto;
 import com.hr.entity.Member;
 import com.hr.entity.PositionHistory;
 import com.hr.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;

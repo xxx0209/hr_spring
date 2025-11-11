@@ -28,6 +28,8 @@ public class ScheduleDto extends BaseDto<Schedule> {
     @NotBlank(message = "내용은 필수 입력 사항입니다.")
     private String content;
 
+
+
     @Override
     protected Class<Schedule> getEntityClass() {
         return Schedule.class;
