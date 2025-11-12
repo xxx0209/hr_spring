@@ -41,7 +41,11 @@ public class Member extends BaseEntity {
     @Column(nullable = false, length = 50)
     private MemberRole memberRole;
 
+    @Column(length = 200)
+    private String profileImage; // 프로필 사진 파일명
+
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    @OrderBy("id DESC") // 엔티티 필드 기준 정렬
     private List<PositionHistory> histories = new ArrayList<>();
 
     @PrePersist

@@ -1,8 +1,6 @@
 package com.hr.controller;
 
-import com.hr.dto.MemberDto;
 import com.hr.dto.PositionDto;
-import com.hr.dto.SimpleMemberDto;
 import com.hr.dto.SimplePositionDto;
 import com.hr.service.PositionService;
 import jakarta.validation.Valid;

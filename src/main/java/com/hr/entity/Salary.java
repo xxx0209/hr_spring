@@ -45,6 +45,12 @@ public class Salary {
     @JoinColumn(name = "position_salary_id", nullable = true)
     private PositionSalary positionSalary; // 직급 기준 급여
 
+    @Column(name = "base_salary_snapshot", precision = 12, scale = 2)
+    private BigDecimal baseSalary; // 생성 당시 기본급
+
+    @Column(name = "hourly_rate_snapshot", precision = 12, scale = 2)
+    private BigDecimal hourlyRate; // 생성 당시 시급
+
     @Column(name = "hours_base_salary", precision = 12, scale = 2)
     private BigDecimal hoursBaseSalary; // 시급 × 1.5 × 시간
 
@@ -63,4 +69,7 @@ public class Salary {
 
     @OneToMany(mappedBy = "salary", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaxDeduction> taxDeductions = new ArrayList<>();
+
+    private String title;
+    private Boolean active;
 }

@@ -9,7 +9,6 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.List;
 
 @Getter
@@ -34,10 +33,15 @@ public class SalaryResponseDto {
 
     private BigDecimal baseSalary;      // 기준 급여
     private BigDecimal hourlyRate;      // 기준 시급
+    private String title;   // 급여 스냅샷용 직급/개인급여 명칭
+    private Boolean active; // 급여 스냅샷용 활성 여부
+
     private BigDecimal hoursBaseSalary; // 초과근무 수당
     private BigDecimal grossPay;        // 총지급액
     private BigDecimal netPay;          // 실지급액
 
     private List<TaxDeductionDetailDto> deductions; // 공제 항목 리스트
     private BigDecimal totalDeduction;  // 총 공제액
+
+
 }
