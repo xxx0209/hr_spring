@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,35 +51,32 @@ public class SalaryService {
         salary.setPayDate(LocalDate.of(salaryMonth.getYear(), salaryMonth.getMonth(), 20));
         salary.setStatus(SalaryStatus.DRAFT);
 
-        // 급여 기준 조회
         BigDecimal baseSalary = BigDecimal.ZERO;
         BigDecimal hourlyRate = BigDecimal.ZERO;
 
         MemberSalary memberSalary = memberSalaryRepository.findByMember_Id(member.getId()).orElse(null);
 
         if (memberSalary != null) {
+            // 개인 급여
             salary.setSalaryType(SalaryType.MEMBER);
             salary.setMemberSalary(memberSalary);
             baseSalary = memberSalary.getBaseSalary() != null ? memberSalary.getBaseSalary() : BigDecimal.ZERO;
             hourlyRate = memberSalary.getHourlyRate() != null ? memberSalary.getHourlyRate() : BigDecimal.ZERO;
         } else {
-            if (member.getPosition() == null)
-                throw new RuntimeException("개인급여가 없고, 회원의 직급이 존재하지 않습니다.");
+            // 직급 급여
+            if (dto.getPositionSalaryId() == null)
+                throw new RuntimeException("개인 급여가 없고, positionSalaryId가 전달되지 않았습니다.");
 
-            List<PositionSalary> positionSalaries = positionSalaryRepository
-                    .findByPosition_PositionIdAndActiveTrue(member.getPosition().getPositionId());
+            PositionSalary ps = positionSalaryRepository.findById(dto.getPositionSalaryId())
+                    .orElseThrow(() -> new RuntimeException("선택한 직급 급여가 존재하지 않습니다."));
 
-            if (positionSalaries.isEmpty())
-                throw new RuntimeException("개인급여가 없고, 직급에 등록된 급여가 없습니다.");
-
-            PositionSalary ps = positionSalaries.get(0);
             salary.setSalaryType(SalaryType.POSITION);
             salary.setPositionSalary(ps);
-            baseSalary = ps.getBaseSalary() != null ? ps.getBaseSalary() : BigDecimal.ZERO;
-            hourlyRate = ps.getHourlyRate() != null ? ps.getHourlyRate() : BigDecimal.ZERO;
-
             salary.setTitle(ps.getTitle());
             salary.setActive(ps.getActive());
+
+            baseSalary = ps.getBaseSalary() != null ? ps.getBaseSalary() : BigDecimal.ZERO;
+            hourlyRate = ps.getHourlyRate() != null ? ps.getHourlyRate() : BigDecimal.ZERO;
         }
 
         salary.setBaseSalary(baseSalary);
@@ -134,9 +130,19 @@ public class SalaryService {
             salary.setPayDate(LocalDate.of(salaryMonth.getYear(), salaryMonth.getMonth(), 20));
         }
 
-        if (dto.getTitle() != null) salary.setTitle(dto.getTitle());
-        if (dto.getBaseSalary() != null) salary.setBaseSalary(dto.getBaseSalary());
-        if (dto.getHourlyRate() != null) salary.setHourlyRate(dto.getHourlyRate());
+        if (dto.getPositionSalaryId() != null) {
+            PositionSalary ps = positionSalaryRepository.findById(dto.getPositionSalaryId())
+                    .orElseThrow(() -> new RuntimeException("선택한 직급 급여가 존재하지 않습니다."));
+            salary.setPositionSalary(ps);
+            salary.setTitle(ps.getTitle());
+            salary.setActive(ps.getActive());
+            salary.setBaseSalary(ps.getBaseSalary());
+            salary.setHourlyRate(ps.getHourlyRate());
+        } else {
+            if (dto.getTitle() != null) salary.setTitle(dto.getTitle());
+            if (dto.getBaseSalary() != null) salary.setBaseSalary(dto.getBaseSalary());
+            if (dto.getHourlyRate() != null) salary.setHourlyRate(dto.getHourlyRate());
+        }
 
         BigDecimal hoursBaseSalary = salary.getHoursBaseSalary() != null ? salary.getHoursBaseSalary() : BigDecimal.ZERO;
         BigDecimal grossPay = salary.getBaseSalary().add(hoursBaseSalary);
@@ -199,7 +205,7 @@ public class SalaryService {
 
         return page.map(this::convertResponse);
     }
-    // 미승인 급여 조회 (DRAFT)
+
     public Page<SalaryResponseDto> findDraftSalaries(Pageable pageable, String searchMemberName) {
         Page<Salary> page;
         if (searchMemberName == null || searchMemberName.isBlank()) {
@@ -210,7 +216,6 @@ public class SalaryService {
         return page.map(this::convertResponse);
     }
 
-    // 승인 급여 조회 (COMPLETED)
     public Page<SalaryResponseDto> findCompletedSalariesFiltered(Pageable pageable, String memberId, String salaryMonthStr) {
         Page<Salary> page;
         if ((memberId == null || memberId.isBlank()) && (salaryMonthStr == null || salaryMonthStr.isBlank())) {
@@ -227,20 +232,17 @@ public class SalaryService {
         return page.map(this::convertResponse);
     }
 
-    // 나의 급여 내역 (페이징 없이 전체)
     public List<SalaryResponseDto> findByMemberId(String memberId) {
         return salaryRepository.findByMember_IdAndStatusOrderByPayDateDesc(memberId, SalaryStatus.COMPLETED)
                 .stream().map(this::convertResponse).collect(Collectors.toList());
     }
 
-    // 나의 급여 상세 (페이징 없음)
     public SalaryResponseDto findMySalaryDetail(String memberId, Integer salaryId) {
         Salary salary = salaryRepository.findBySalaryIdAndMemberId(salaryId, memberId)
                 .orElseThrow(() -> new RuntimeException("해당 급여 내역을 찾을 수 없습니다."));
         return convertResponse(salary);
     }
 
-    // 삭제
     public void delete(Integer salaryId) {
         Salary salary = salaryRepository.findById(salaryId)
                 .orElseThrow(() -> new RuntimeException("삭제할 급여가 존재하지 않습니다."));
@@ -271,13 +273,11 @@ public class SalaryService {
         dto.setTitle(s.getTitle());
         dto.setActive(s.getActive());
 
-        // POSITION인 경우 positionSalary의 title을 DTO에 넣어주기
         if (s.getSalaryType() == SalaryType.POSITION && s.getPositionSalary() != null) {
             dto.setTitle(s.getPositionSalary().getTitle());
         } else {
-            dto.setTitle(s.getTitle()); // MEMBER 타입은 기존 title 사용
+            dto.setTitle(s.getTitle());
         }
-
 
         if (s.getTaxDeductions() != null && !s.getTaxDeductions().isEmpty()) {
             List<TaxDeductionDetailDto> deductionList = s.getTaxDeductions().stream().map(td -> {
