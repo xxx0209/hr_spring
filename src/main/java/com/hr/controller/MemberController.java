@@ -9,6 +9,7 @@ import com.hr.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
@@ -90,8 +91,13 @@ public class MemberController {
             // 에러 메시지를 담아서 400 Bad Request 반환
             return ResponseEntity.badRequest().body(errors);
         }
-        Member updated = memberService.updateMember(memberUpdateDto);
-        return ResponseEntity.ok(updated);
+
+        try {
+            MemberUpdateDto updateDto = memberService.updateMember(memberUpdateDto);
+            return ResponseEntity.ok(updateDto);
+        } catch(Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 내부 오류가 발생했습니다.");
+        }
     }
 
 }

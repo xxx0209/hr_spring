@@ -61,7 +61,7 @@ public class MemberService {
                 .collect(Collectors.toList());
     }
 
-    public Member updateMember(MemberUpdateDto dto) throws IOException {
+    public MemberUpdateDto updateMember(MemberUpdateDto dto) throws IOException {
         Member member = memberRepository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("회원이 존재하지 않습니다."));
 
@@ -92,14 +92,17 @@ public class MemberService {
 
             // 기존 파일 삭제
             if (member.getProfileImage() != null) {
-                File oldFile = Paths.get(uploadDir, member.getProfileImage()).toFile();
+                File oldFile = Paths.get(productImageLocation, member.getProfileImage()).toFile();
                 if (oldFile.exists()) oldFile.delete();
             }
 
             member.setProfileImage(fileName);
         }
+        memberRepository.save(member);
+        dto.setPassword(null);
+        dto.setProfileImage(null);
 
-        return memberRepository.save(member);
+        return dto;
     }
 
     // 회원 정보 조회 (DTO 반환)
