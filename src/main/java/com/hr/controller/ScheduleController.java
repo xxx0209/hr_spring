@@ -1,6 +1,7 @@
 package com.hr.controller;
 
 import com.hr.dto.member.ScheduleDto;
+import com.hr.dto.member.ScheduleGroupDto;
 import com.hr.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,8 +19,8 @@ public class ScheduleController {
 
     // 회원별 일정 조회 (관리자용)
     @GetMapping("/member/{memberId}")
-    public List<ScheduleDto> getSchedulesByMember(@PathVariable String memberId) {
-        return scheduleService.getSchedulesByMember(memberId);
+    public ScheduleGroupDto getSchedulesByMember(@PathVariable String memberId, @RequestParam(required = false) String month) {
+        return scheduleService.getSchedulesByMemberAndMonth(memberId, month);
     }
 
     // 일정 등록

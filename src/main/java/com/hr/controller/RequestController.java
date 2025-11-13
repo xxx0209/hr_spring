@@ -1,15 +1,17 @@
 package com.hr.controller;
 
 import com.hr.dto.RequestDto;
+import com.hr.dto.ApprovalDto;
 import com.hr.entity.Request;
-import com.hr.entity.Member;
 import com.hr.security.CustomUserDetails;
 import com.hr.service.RequestService;
+import com.hr.service.ApprovalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -18,6 +20,7 @@ import java.util.*;
 public class RequestController {
 
     private final RequestService requestService;
+    private final ApprovalService approvalService;
 
     // 기안 등록
     @PostMapping
@@ -76,7 +79,7 @@ public class RequestController {
         return ResponseEntity.ok("상태 변경 완료");
     }
 
-    // 결재 승인
+    // 결재 승인 (Approval 로그 자동 생성 추가됨)
     @PatchMapping("/{id}/approve")
     public ResponseEntity<?> approveRequest(@PathVariable Long id,
                                             @RequestBody RequestDto dto,
@@ -90,11 +93,25 @@ public class RequestController {
 
         if (!isAdmin) return ResponseEntity.status(403).body("권한이 없습니다.");
 
+        // Request 승인 처리
         requestService.approveRequest(id, user.getName(), dto.getComment());
+
+        // Approval 로그 생성
+        ApprovalDto approvalDto = new ApprovalDto();
+        approvalDto.setRequestId(id);
+        approvalDto.setApproverId(user.getMemberId());
+        approvalDto.setStatus("APPROVED");
+        approvalDto.setComment(dto.getComment());
+        approvalDto.setUpdatedAt(LocalDateTime.now());
+        approvalDto.setStepOrder(1);
+        approvalDto.setIsFinal(true);
+
+        approvalService.save(approvalDto); // Approval 테이블에 insert
+
         return ResponseEntity.ok("결재 승인 완료");
     }
 
-    // 결재 반려
+    // 결재 반려 (Approval 로그 자동 생성 추가됨)
     @PatchMapping("/{id}/reject")
     public ResponseEntity<?> rejectRequest(@PathVariable Long id,
                                            @RequestBody RequestDto dto,
@@ -108,7 +125,21 @@ public class RequestController {
 
         if (!isAdmin) return ResponseEntity.status(403).body("권한이 없습니다.");
 
+        // Request 반려 처리
         requestService.rejectRequest(id, user.getName(), dto.getComment());
+
+        // Approval 로그 생성
+        ApprovalDto approvalDto = new ApprovalDto();
+        approvalDto.setRequestId(id);
+        approvalDto.setApproverId(user.getMemberId());
+        approvalDto.setStatus("REJECTED");
+        approvalDto.setComment(dto.getComment());
+        approvalDto.setUpdatedAt(LocalDateTime.now());
+        approvalDto.setStepOrder(1);
+        approvalDto.setIsFinal(true);
+
+        approvalService.save(approvalDto); // Approval 테이블에 insert
+
         return ResponseEntity.ok("결재 반려 완료");
     }
 
@@ -125,12 +156,13 @@ public class RequestController {
         return ResponseEntity.ok(tempList);
     }
 
-    // 결재자 목록 조회 (RequestService에서 바로 처리)
+    // 결재자 목록 조회
     @GetMapping("/approvers")
     public ResponseEntity<?> getApprovers() {
         return ResponseEntity.ok(requestService.findApprovers());
     }
 
+    // 결재현황 데이터 조회
     @GetMapping("/approvals")
     public ResponseEntity<?> getApprovalsForApprover(Authentication authentication) {
         if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails user)) {
@@ -140,12 +172,10 @@ public class RequestController {
         String memberId = user.getMemberId();
 
         Map<String, Object> result = new HashMap<>();
-        // recent 제거 → 전체 데이터 반환하도록 변경
         result.put("requests", requestService.findApprovalRequests(memberId));
         result.put("processed", requestService.findApprovedDocs(memberId));
         result.put("myRequests", requestService.findMyRequests(memberId));
 
         return ResponseEntity.ok(result);
     }
-
 }

@@ -1,15 +1,12 @@
 package com.hr.service;
 
-import com.hr.dto.MemberDto;
+import com.hr.dto.member.MemberDto;
 import com.hr.repository.MemberRepository;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 //@Transactional
