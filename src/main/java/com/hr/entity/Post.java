@@ -5,6 +5,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
@@ -37,13 +38,14 @@ public class Post {
     @Column(name = "create_date", updatable = false)
     private LocalDateTime createDate;
 
-    @Column(name = "update_date", insertable = false, updatable = false)
+    @UpdateTimestamp
+    @Column(name = "update_date", insertable = false, updatable = true)
     private LocalDateTime updateDate;
 
     @Column(nullable = false)
     private Integer likes = 0;
 
-    // ✅ 여기가 핵심: Comment 리스트 추가
+    //  Comment 리스트 추가
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Comment> comments;
