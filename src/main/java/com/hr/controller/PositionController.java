@@ -1,12 +1,14 @@
 package com.hr.controller;
 
-import com.hr.dto.PositionDto;
+import com.hr.dto.member.PositionDto;
 import com.hr.dto.SimplePositionDto;
 import com.hr.service.PositionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -54,10 +56,13 @@ public class PositionController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        // 회원가입 로직 수행
-        positionService.save(positionDto);
-
-        return ResponseEntity.ok("회원가입 성공");
+        // 직급 로직 수행
+        try {
+            positionService.save(positionDto);
+            return ResponseEntity.ok("직급이 등록 되었습니다.");
+        } catch(DataIntegrityViolationException ex){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "이미 등록된 직급코드 입니다."));
+        }
     }
 
     @GetMapping("all")

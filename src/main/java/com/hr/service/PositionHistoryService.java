@@ -1,6 +1,6 @@
 package com.hr.service;
 
-import com.hr.dto.PositionHistoryDto;
+import com.hr.dto.member.PositionHistoryDto;
 import com.hr.entity.Member;
 import com.hr.entity.Position;
 import com.hr.entity.PositionHistory;
@@ -14,8 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

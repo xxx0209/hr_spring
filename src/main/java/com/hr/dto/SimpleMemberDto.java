@@ -1,7 +1,7 @@
 package com.hr.dto;
 
+import com.hr.dto.member.PositionDto;
 import com.hr.entity.Member;
-import com.hr.entity.Position;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
