@@ -1,6 +1,6 @@
 package com.hr.controller;
 
-import com.hr.dto.MemberDto;
+import com.hr.dto.member.MemberDto;
 import com.hr.entity.Comment;
 import com.hr.entity.Post;
 import com.hr.security.CustomUserDetails;

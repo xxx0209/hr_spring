@@ -1,10 +1,10 @@
 package com.hr.service;
 
 import com.hr.dto.*;
+import com.hr.dto.member.PositionDto;
 import com.hr.entity.Position;
 import com.hr.repository.PositionRepository;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
