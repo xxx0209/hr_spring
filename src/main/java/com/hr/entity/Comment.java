@@ -25,9 +25,15 @@ public class Comment {
     @Column(nullable = false)
     private String writer;
 
+    @Column(nullable = false)
+    private String writerId;
+
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(nullable = false)
-    private LocalDateTime createDate = LocalDateTime.now();
+    private LocalDateTime createDate;
+
+//    @Column(name = "update_date", insertable = false, updatable = false)
+//    private LocalDateTime updateDate;
 }

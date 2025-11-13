@@ -1,5 +1,6 @@
 package com.hr.controller;
 
+import com.hr.dto.MemberDto;
 import com.hr.entity.Comment;
 import com.hr.entity.Post;
 import com.hr.security.CustomUserDetails;
@@ -8,6 +9,7 @@ import com.hr.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +26,7 @@ public class PostController {
 
     private final PostService postService;
 
+
     /** ✅ 게시글 상세 조회 (조회수 증가 여부 선택 가능) */
     @GetMapping("/{id}")
     public ResponseEntity<?> getPost(@PathVariable Long id,
@@ -34,7 +37,7 @@ public class PostController {
 
         boolean liked = false;
         if (userDetails != null) {
-            liked = postService.hasUserLiked(id, userDetails.getUsername()); // principal.getName() 대신 userDetails.getUsername()
+            liked = postService.hasUserLiked(id, userDetails.getName()); // principal.getName() 대신 userDetails.getUsername()
         }
 
         Map<String, Object> response = new HashMap<>();
@@ -59,7 +62,7 @@ public class PostController {
     /** ✅ 게시글 좋아요 (1인 1회 토글 방식) */
     @PostMapping("/{id}/like")
     public ResponseEntity<?> like(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        String memberId = (userDetails != null) ? userDetails.getUsername() : "익명"; // principal.getName() 대신 userDetails.getUsername()
+        String memberId = (userDetails != null) ? userDetails.getName() : "익명"; // principal.getName() 대신 userDetails.getUsername()
         boolean liked = postService.toggleLike(id, memberId);
         return ResponseEntity.ok(Map.of("liked", liked));
     }
@@ -74,18 +77,24 @@ public class PostController {
         try {
             // 로그인된 사용자가 있다면, 그 사용자의 이름을 가져옴
             String writer = (userDetails != null) ? userDetails.getName() : "익명"; // userDetails.getName() 사용
-
+            String writerId = (userDetails != null) ? userDetails.getMemberId() : "-";
             String content = payload.get("content") != null ? payload.get("content").toString().trim() : "";
 
             if (content.isEmpty()) throw new RuntimeException("댓글 내용이 비어있습니다.");
 
-            Comment saved = postService.addComment(id, writer, content);
+            Comment saved = postService.addComment(id, writer,content,writerId);
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError()
                     .body(Map.of("error", e.getMessage()));
         }
+    }
+    // 댓글 목록 조회 (GET)
+    @GetMapping("/{id}/comments")
+    public ResponseEntity<List<Comment>> getComments(@PathVariable Long id) {
+        List<Comment> comments = postService.getCommentsByPostId(id);
+        return ResponseEntity.ok(comments);
     }
 
     /** ✅ 게시글 등록 */
@@ -106,7 +115,7 @@ public class PostController {
 
     @GetMapping("/{id}/like-status")
     public ResponseEntity<?> checkLikeStatus(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        String memberId = (userDetails != null) ? userDetails.getUsername() : "익명"; // userDetails.getUsername() 사용
+        String memberId = (userDetails != null) ? userDetails.getName() : "익명"; // userDetails.getUsername() 사용
         boolean liked = postService.hasUserLiked(id, memberId);
         return ResponseEntity.ok(Map.of("liked", liked));
     }

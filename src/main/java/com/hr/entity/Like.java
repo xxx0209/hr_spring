@@ -21,4 +21,7 @@ public class Like {
 
     @Column(nullable = false)
     private String memberId; // 좋아요 누른 사용자 ID
+
+
+
 }

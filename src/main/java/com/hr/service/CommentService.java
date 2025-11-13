@@ -16,8 +16,8 @@ public class CommentService {
     public Comment save(Comment comment) {
         return commentRepository.save(comment);
     }
-
-    public List<Comment> findByPostId(Long postId) {
-        return commentRepository.findByPost_IdOrderByCreateDateDesc(postId);
-    }
 }
+
+//    public List<Comment> findByPostId(Long postId) {
+//        return commentRepository.findByPost_IdOrderByCreateDateDesc(postId);
+//    }
