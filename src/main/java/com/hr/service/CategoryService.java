@@ -4,7 +4,9 @@ import com.hr.entity.Category;
 import com.hr.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,7 +25,14 @@ public class CategoryService {
 
     // 전체 카테고리 조회(페이징적용)
     public Page<Category> getAllCategories(Pageable pageable) {
-        return categoryRepository.findAll(pageable);
+
+        Pageable sorted = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "categoryId")
+        );
+
+        return categoryRepository.findAll(sorted);
     }
 
     // 카테고리 등록
