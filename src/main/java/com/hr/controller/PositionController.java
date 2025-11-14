@@ -37,8 +37,28 @@ public class PositionController {
     }
 
     @PutMapping("/{id}")
-    public PositionDto update(@PathVariable Long id, @RequestBody PositionDto dto) {
-        return positionService.updatePosition(id, dto);
+    public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody PositionDto dto, BindingResult bindingResult) {
+
+        if(bindingResult.hasErrors()) { // 유효성 검사에 문제가 있음.
+            // 에러 메시지들을 Map이나 List로 추출
+            Map<String, String> errors = new HashMap<>();
+
+            bindingResult.getFieldErrors().forEach(fieldError -> {
+                errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+            });
+
+            // 에러 메시지를 담아서 400 Bad Request 반환
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        // 직급 로직 수행
+        try {
+            positionService.updatePosition(id, dto);
+            return ResponseEntity.ok("직급이 수정 되었습니다.");
+        } catch(Exception ex){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "직급 수정중 오류가 발생하였습니다."));
+        }
+
     }
 
     @PostMapping("/save")
