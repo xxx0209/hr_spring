@@ -30,7 +30,7 @@ public class UserController {
         if (!authorities.isEmpty()) {
             GrantedAuthority firstAuthority = authorities.iterator().next();
             role = firstAuthority.getAuthority();
-            System.out.println("첫 번째 권한: " + role);
+           // System.out.println("첫 번째 권한: " + role);
         }
 
         return ResponseEntity.ok(Map.of(
@@ -38,6 +38,7 @@ public class UserController {
                 "memberId", userDetails.getMemberId(),
                 "name", userDetails.getName(),
                 "email", userDetails.getEmail(),
+                "positionName", userDetails.getPositionName(),
                 "roles", userDetails.getAuthorities(),
                 "role" , role
         ));

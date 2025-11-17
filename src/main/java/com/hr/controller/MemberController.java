@@ -1,7 +1,6 @@
 package com.hr.controller;
 
-import com.hr.dto.member.MemberDto;
-import com.hr.dto.member.MemberUpdateDto;
+import com.hr.dto.member.*;
 import com.hr.dto.SimpleMemberDto;
 import com.hr.entity.Member;
 import com.hr.security.CustomUserDetails;
@@ -9,6 +8,7 @@ import com.hr.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -97,6 +97,21 @@ public class MemberController {
             return ResponseEntity.ok(updateDto);
         } catch(Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 내부 오류가 발생했습니다.");
+        }
+    }
+
+    @GetMapping("/search")
+    public Page<MemberResponseDto> searchMembers(MemberSearchRequestDto requestDto) {
+        return memberService.searchMembers(requestDto);
+    }
+
+    @PutMapping("/update-role")
+    public ResponseEntity<String> updateRole(@RequestBody MemberRoleUpdateDto dto) {
+        try {
+            memberService.updateMemberRole(dto);
+            return ResponseEntity.ok("권한이 수정되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
