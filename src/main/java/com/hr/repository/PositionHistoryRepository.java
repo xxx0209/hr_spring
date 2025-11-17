@@ -1,19 +1,17 @@
 package com.hr.repository;
 
-import com.hr.dto.PositionHistoryDto;
+import com.hr.dto.member.PositionHistoryDto;
 import com.hr.entity.PositionHistory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.List;
-
 public interface PositionHistoryRepository extends JpaRepository<PositionHistory, Long> {
 
     @Query(
             value = """
-            SELECT new com.hr.dto.PositionHistoryDto(
+            SELECT new com.hr.dto.member.PositionHistoryDto(
                 h.id,
                 m.id,
                 m.name,

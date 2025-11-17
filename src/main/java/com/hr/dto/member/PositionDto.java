@@ -1,5 +1,6 @@
-package com.hr.dto;
+package com.hr.dto.member;
 
+import com.hr.dto.BaseDto;
 import com.hr.entity.Position;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -11,7 +12,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PositionDto extends BaseDto<Position>{
+public class PositionDto extends BaseDto<Position> {
 
     private Long positionId;
 

@@ -8,7 +8,6 @@ import com.hr.repository.LikeRepository;
 import com.hr.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,29 +25,20 @@ public class PostService {
     private final LikeRepository likeRepository;
 
 
-//    /** ✅ 게시글 목록 */
-//    public Page<Post> list(String q, String category, Pageable pageable) {
-//        if (category != null && !category.trim().isEmpty()) {
-//            // ✅ category 값이 있을 경우 해당 카테고리 게시글만
-//            return postRepository.findByCategory(category, pageable);
-//        } else if (q != null && !q.trim().isEmpty()) {
-//            // ✅ 검색어(q)가 있을 경우 제목/내용 검색
-//            return postRepository.findByTitleContainingOrContentContaining(q, q, pageable);
-//        } else {
-//            // ✅ 아무 조건도 없을 때 전체 조회
-//            return postRepository.findAll(pageable);
-//        }
-//    }
-
     public Page<Post> list(String q, String category, Pageable pageable) {
         Page<Post> posts;
 
+        // Sort 설정 - createDate 기준으로 내림차순 정렬
+        Sort sort = Sort.by(Sort.Order.desc("createDate"));  // Sort 설정
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);  // Sort 포함된 Pageable 생성
+
+        // 정렬된 Pageable을 사용하여 데이터 조회
         if (category != null && !category.trim().isEmpty()) {
-            posts = postRepository.findByCategory(category, pageable);
+            posts = postRepository.findByCategory(category, sortedPageable);  // 정렬된 데이터를 반환
         } else if (q != null && !q.trim().isEmpty()) {
-            posts = postRepository.findByTitleContainingOrContentContaining(q, q, pageable);
+            posts = postRepository.findByTitleContainingOrContentContaining(q, q, sortedPageable);  // 정렬된 데이터를 반환
         } else {
-            posts = postRepository.findAll(pageable);
+            posts = postRepository.findAll(sortedPageable);  // 정렬된 데이터를 반환
         }
 
         // 🔹 각 게시글의 댓글 수 세기
@@ -56,7 +46,6 @@ public class PostService {
             long count = commentRepository.countByPostId(post.getId());
             post.setCommentCount(count);
         });
-
         return posts;
     }
 
@@ -90,18 +79,20 @@ public class PostService {
             return true; // 좋아요 상태
         }
     }
+
     public boolean hasUserLiked(Long postId, String memberId) {
         return likeRepository.findByPost_IdAndMemberId(postId, memberId).isPresent();
     }
 
     /** ✅ 댓글 추가 */
     @Transactional
-    public Comment addComment(Long postId, String writer, String content) {
+    public Comment addComment(Long postId, String writer, String content, String writerId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
         Comment comment = new Comment();
         comment.setPost(post);
         comment.setWriter(writer);
+        comment.setWriterId(writerId);
         comment.setContent(content);
         comment.setCreateDate(LocalDateTime.now());
         return commentRepository.save(comment);
@@ -153,11 +144,16 @@ public class PostService {
     }
 
     // 게시글 삭제
+    @Transactional
     public void deletePost(Long id) {
-        if (!postRepository.existsById(id)) {
-            throw new RuntimeException("게시글이 존재하지 않습니다.");
-        }
-        postRepository.deleteById(id);
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+        // 좋아요 삭제
+        likeRepository.deleteByPost(post);
+        // 댓글 삭제
+        commentRepository.deleteById(id);
+        // 게시글 삭제
+        postRepository.delete(post);
     }
 
     // ✅ 댓글 수정 기능
