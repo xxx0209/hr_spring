@@ -13,4 +13,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
 
     Page<Post> findByTitleContainingOrContentContaining(String title, String content, Pageable pageable);
 
+
 }
+

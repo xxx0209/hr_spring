@@ -1,12 +1,14 @@
 package com.hr.controller;
 
-import com.hr.dto.PositionDto;
+import com.hr.dto.member.PositionDto;
 import com.hr.dto.SimplePositionDto;
 import com.hr.service.PositionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -35,8 +37,28 @@ public class PositionController {
     }
 
     @PutMapping("/{id}")
-    public PositionDto update(@PathVariable Long id, @RequestBody PositionDto dto) {
-        return positionService.updatePosition(id, dto);
+    public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody PositionDto dto, BindingResult bindingResult) {
+
+        if(bindingResult.hasErrors()) { // 유효성 검사에 문제가 있음.
+            // 에러 메시지들을 Map이나 List로 추출
+            Map<String, String> errors = new HashMap<>();
+
+            bindingResult.getFieldErrors().forEach(fieldError -> {
+                errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+            });
+
+            // 에러 메시지를 담아서 400 Bad Request 반환
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        // 직급 로직 수행
+        try {
+            positionService.updatePosition(id, dto);
+            return ResponseEntity.ok("직급이 수정 되었습니다.");
+        } catch(Exception ex){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "직급 수정중 오류가 발생하였습니다."));
+        }
+
     }
 
     @PostMapping("/save")
@@ -54,10 +76,13 @@ public class PositionController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        // 회원가입 로직 수행
-        positionService.save(positionDto);
-
-        return ResponseEntity.ok("회원가입 성공");
+        // 직급 로직 수행
+        try {
+            positionService.save(positionDto);
+            return ResponseEntity.ok("직급이 등록 되었습니다.");
+        } catch(DataIntegrityViolationException ex){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "이미 등록된 직급코드 입니다."));
+        }
     }
 
     @GetMapping("all")
