@@ -1,6 +1,5 @@
 package com.hr.controller;
 
-import com.hr.dto.MemberDto;
 import com.hr.entity.Comment;
 import com.hr.entity.Post;
 import com.hr.security.CustomUserDetails;
@@ -9,12 +8,10 @@ import com.hr.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
