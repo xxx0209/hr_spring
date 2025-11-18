@@ -16,15 +16,18 @@ public class CustomUserDetails implements UserDetails {
     private String name;
     @Getter
     private String email;
+    @Getter
+    private String positionName;
     private Collection<? extends GrantedAuthority> authorities;
 
-    public CustomUserDetails(String username, String password, String memberId, String name, String email,
+    public CustomUserDetails(String username, String password, String memberId, String name, String email, String positionName,
                              Collection<? extends GrantedAuthority> authorities) {
         this.username = username;
         this.password = password;
         this.memberId = memberId;
         this.name = name;
         this.email = email;
+        this.positionName = positionName;
         this.authorities = authorities;
     }
 
@@ -34,6 +37,7 @@ public class CustomUserDetails implements UserDetails {
         this.memberId = builder.memberId;
         this.email = builder.email;
         this.name = builder.name;
+        this.positionName = builder.positionName;
         this.authorities = builder.authorities;
     }
 
@@ -70,6 +74,7 @@ public class CustomUserDetails implements UserDetails {
         private String memberId;
         private String name;
         private String email;
+        private String positionName;
 
         private Collection<? extends GrantedAuthority> authorities;
 
@@ -95,6 +100,11 @@ public class CustomUserDetails implements UserDetails {
 
         public Builder email(String email) {
             this.email = email;
+            return this;
+        }
+
+        public Builder positionName(String positionName) {
+            this.positionName = positionName;
             return this;
         }
 

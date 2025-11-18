@@ -1,15 +1,18 @@
 package com.hr.service;
 
 import com.hr.dto.*;
-import com.hr.dto.member.MemberDto;
-import com.hr.dto.member.MemberUpdateDto;
+import com.hr.dto.member.*;
 import com.hr.entity.Member;
 import com.hr.entity.PositionHistory;
 import com.hr.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -39,6 +42,9 @@ public class MemberService {
         memberDto.setPassword(passwordEncoder.encode(memberDto.getPassword()));
         Member member = memberDto.toEntity();
 
+        Member test = new Member();
+
+
         memberRepository.save(member);
     }
 
@@ -61,7 +67,7 @@ public class MemberService {
                 .collect(Collectors.toList());
     }
 
-    public Member updateMember(MemberUpdateDto dto) throws IOException {
+    public MemberUpdateDto updateMember(MemberUpdateDto dto) throws IOException {
         Member member = memberRepository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("회원이 존재하지 않습니다."));
 
@@ -92,14 +98,17 @@ public class MemberService {
 
             // 기존 파일 삭제
             if (member.getProfileImage() != null) {
-                File oldFile = Paths.get(uploadDir, member.getProfileImage()).toFile();
+                File oldFile = Paths.get(productImageLocation, member.getProfileImage()).toFile();
                 if (oldFile.exists()) oldFile.delete();
             }
 
             member.setProfileImage(fileName);
         }
+        memberRepository.save(member);
+        dto.setPassword(null);
+        dto.setProfileImage(null);
 
-        return memberRepository.save(member);
+        return dto;
     }
 
     // 회원 정보 조회 (DTO 반환)
@@ -125,6 +134,49 @@ public class MemberService {
         }
 
         return memberUpdateDto;
+    }
+
+    public Page<MemberResponseDto> searchMembers(MemberSearchRequestDto dto) {
+        Pageable pageable = PageRequest.of(dto.getPage(), dto.getSize());
+        Page<Member> pageResult;
+
+        switch (dto.getSearchType()) {
+            case "username":
+                pageResult = memberRepository.findByIdContaining(dto.getKeyword(), pageable);
+                break;
+            case "name":
+                pageResult = memberRepository.findByNameContaining(dto.getKeyword(), pageable);
+                break;
+            case "position":
+                pageResult = memberRepository.findByPositionNameContaining(dto.getKeyword(), pageable);
+                break;
+            case "hireDate":
+                pageResult = memberRepository.findByHiredate(dto.getHireDate(), pageable);
+                break;
+            case "all":
+            default:
+                pageResult = memberRepository.findAll(pageable);
+        }
+
+        return pageResult.map(m -> new MemberResponseDto(
+                m.getId(),
+                m.getName(),
+                m.getPosition() != null ? m.getPosition().getPositionName() : "-",
+                m.getGender(),
+                m.getEmail(),
+                m.getMemberRole().name(),
+                m.getMemberRole().getLabel(),
+                m.getHiredate(),
+                m.getProfileImage()
+        ));
+    }
+
+    @Transactional
+    public void updateMemberRole(MemberRoleUpdateDto dto) {
+        Member member = memberRepository.findById(dto.getMemberId())
+                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+        member.setMemberRole(dto.getMemberRole());
+        memberRepository.save(member);
     }
 
 
